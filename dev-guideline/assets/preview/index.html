@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>dev-guideline</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="logo"></span>
+    <div class="brand-text">
+      <span class="name">dev-guideline</span>
+      <span class="project" id="projectName">—</span>
+    </div>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button class="tab active" data-tab="tasks" role="tab">
+      <span class="tab-label">Tasks</span>
+      <span class="tab-count" id="cnt-tasks">0</span>
+    </button>
+    <button class="tab" data-tab="memory" role="tab">
+      <span class="tab-label">Memory</span>
+    </button>
+    <button class="tab" data-tab="progress" role="tab">
+      <span class="tab-label">Progress</span>
+    </button>
+    <button class="tab hidden" data-tab="other" role="tab" id="tab-other">
+      <span class="tab-label">Other</span>
+      <span class="tab-count" id="cnt-other">0</span>
+    </button>
+  </nav>
+  <div class="meta">
+    <span class="live" id="liveDot" title="live reload connected">●</span>
+    <span id="lastSync">—</span>
+  </div>
+</header>
+
+<section class="tab-panel active" data-panel="tasks">
+  <aside class="task-list-pane">
+    <div class="pane-head">
+      <span>Active</span>
+      <span class="pane-count" id="activeCount">0</span>
+    </div>
+    <ul class="task-list" id="activeList"></ul>
+    <button class="load-more hidden" id="loadMoreActive">load all</button>
+
+    <div class="pane-head">
+      <span>Completed</span>
+      <span class="pane-count" id="completedCount">0</span>
+    </div>
+    <ul class="task-list compact" id="completedList"></ul>
+    <button class="load-more hidden" id="loadMoreCompleted">load all</button>
+
+    <div class="pane-head" id="archivedHead">
+      <span>Archived</span>
+      <span class="pane-count" id="archivedCount">0</span>
+    </div>
+    <ul class="task-list compact" id="archivedList"></ul>
+    <button class="load-more hidden" id="loadMoreArchived">load all</button>
+  </aside>
+  <section class="task-detail-pane">
+    <div id="taskView" class="task-view empty">
+      <div class="empty-state">
+        <div class="empty-glyph">·</div>
+        <div class="empty-text">select a task</div>
+      </div>
+    </div>
+  </section>
+</section>
+
+<section class="tab-panel" data-panel="memory">
+  <div class="panel-inner">
+    <div class="stats-row">
+      <div class="stat">
+        <div class="stat-value" id="memEntries">0</div>
+        <div class="stat-label">entries</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="memLines">0</div>
+        <div class="stat-label">lines</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="memChars">0</div>
+        <div class="stat-label">characters</div>
+      </div>
+      <div class="stat stat-meta">
+        <div class="stat-value-sm" id="memoryUpdated">—</div>
+        <div class="stat-label">last updated</div>
+      </div>
+    </div>
+    <div class="threshold">
+      <div class="threshold-meta">
+        <span>compaction threshold</span>
+        <span id="memThresholdText">—</span>
+      </div>
+      <div class="threshold-bar"><div class="threshold-fill" id="memThresholdFill"></div></div>
+    </div>
+    <div class="warn-banner hidden" id="memWarn">
+      Memory exceeds threshold — run <code>/dev-guideline compact</code>
+    </div>
+    <article class="md doc" id="memoryBody"></article>
+  </div>
+</section>
+
+<section class="tab-panel" data-panel="progress">
+  <div class="panel-inner">
+    <div class="stats-row">
+      <div class="stat stat-accent ok">
+        <div class="stat-value" id="shippedN">0</div>
+        <div class="stat-label">shipped</div>
+      </div>
+      <div class="stat stat-accent acc">
+        <div class="stat-value" id="inProgressN">0</div>
+        <div class="stat-label">in progress</div>
+      </div>
+      <div class="stat stat-accent dim">
+        <div class="stat-value" id="pendingN">0</div>
+        <div class="stat-label">pending</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="progChars">0</div>
+        <div class="stat-label">characters</div>
+      </div>
+      <div class="stat stat-meta">
+        <div class="stat-value-sm" id="progressUpdated">—</div>
+        <div class="stat-label">last updated</div>
+      </div>
+    </div>
+    <article class="md doc" id="progressBody"></article>
+  </div>
+</section>
+
+<section class="tab-panel" data-panel="other">
+  <div class="panel-inner other-grid">
+    <aside class="other-list-pane">
+      <div class="pane-head"><span>Other in .agent/</span><span class="pane-count" id="otherCountInner">0</span></div>
+      <ul class="other-list" id="otherList"></ul>
+    </aside>
+    <section class="other-detail-pane">
+      <div id="otherView" class="task-view empty">
+        <div class="empty-state">
+          <div class="empty-glyph">·</div>
+          <div class="empty-text">select a file</div>
+        </div>
+      </div>
+    </section>
+  </div>
+</section>
+
+<script src="/marked.min.js"></script>
+<script src="/app.js"></script>
+</body>
+</html>
