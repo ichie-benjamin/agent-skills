@@ -115,9 +115,9 @@ separate:
    type at video scale, real depth, staged motion, cinematic composition.
    A pasted/replicated screenshot (flat, web-scale type, no motion) FAILS
    this even though "accurate."
-10. **Real content** — real amounts + names from the resolved brand source
-    (`memories/brand.md` in the creative repo; the project's design/brand
-    spec elsewhere). No lorem, no placeholder.
+10. **Real content** — real amounts + names from the project's brand source
+    (`memories/brand.md`; in standalone mode, whatever design/brand spec is
+    on disk, else the reference). No lorem, no placeholder.
 
 ## Motion-concept scenes (🟢 / 🔤) — add items 11-12
 
