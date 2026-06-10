@@ -5,7 +5,7 @@ description: Produce premium Queek videos — launch films, industry films, feat
 
 # Queek premium video
 
-Build Queek videos that match the team's premium bar. Flow has three human approvals: Direction, Plan, each Make gate. Everything else runs without interruption.
+Build Queek videos that match the team's premium bar. Flow has two human approvals: Plan, each Make gate. Everything else runs without interruption — Direction is Dara's internal creative commitment (self-validated, no human gate); the concept is reviewed inside Plan via the 3-line creative-bet header at the top of `plan.md`.
 
 This file is the entry point. Pull templates and project files as you go.
 
@@ -60,11 +60,11 @@ memories/<topic>.md                           updated if new insight
 
 ## Flow
 
-Seven steps. Approvals at Direction, Plan, each Make gate.
+Seven steps. Human approvals at Plan and each Make gate. Direction is internal.
 
 1. **Intake** — Load brand + asset libraries + REFERENCES + voice-options. Run pre-flight (below). Pick type. Ask for missing brief fields in one consolidated message; never infer. When the brief is complete: `mkdir works/<slug>/`, write `brief.md`, initialise `TASK.md` with phase skeleton. The project exists from this moment so any session cut can resume.
-2. **Direction** — Write `works/<slug>/direction.md` (creative commitment: signature device · look · sound · references). Self-grade against Validator A. Rewrite until pass. Submit.
-3. **Plan** — Write `works/<slug>/plan.md` (per-scene contract). Source assets per `references/asset-sourcing.md`. Self-grade against Validator B. Rewrite until pass. Submit.
+2. **Direction (INTERNAL — no human gate)** — Write `works/<slug>/direction.md` (creative commitment: signature device · look · sound · references). Self-grade against Validator A. Rewrite until pass. Then proceed DIRECTLY to Plan in the same spawn — do NOT submit a gate, do NOT pause for human review. Direction is your creative scratch; the human reviews it inside Plan via the 3-line creative-bet header.
+3. **Plan (FIRST HUMAN GATE)** — Write `works/<slug>/plan.md` (per-scene contract). MUST open with a 3-line creative-bet header so reviewer can decide in 5 seconds: `**Concept:** <one sentence> · **Audio path:** <A/B/etc + reason> · **Signature device:** <name> · **Arc:** <beat → beat → beat>`. Source assets per `references/asset-sourcing.md`. Self-grade against Validator B. Rewrite until pass. Submit.
 4. **Make** — Audio · Video · Mobile, with three gates (below).
 5. **Render** — Wire stems, render both masters.
 6. **Review** — Three axes: technical · brand · story · reference diff. Fail routes to the phase that owns the gap.
@@ -74,7 +74,7 @@ Seven steps. Approvals at Direction, Plan, each Make gate.
 
 ## Gate protocol (durable, single source of truth)
 
-Every human-decision point — Intake missing-brief questions, Direction submit, Plan submit, Gate 1 (audio), Gate 2 (desktop), Gate 3 (mobile), and any "block until supplied" / hero-frame sign-off — is a **durable gate**, not a synchronous conversation pause. The decision is always recorded in `works/<slug>/TASK.md`, so a run can pause and resume across sessions (or across an autonomous runtime's turn budget) without losing the question.
+Every human-decision point — Intake missing-brief questions, Plan submit, Gate 1 (audio), Gate 2 (desktop), Gate 3 (mobile), and any "block until supplied" / hero-frame sign-off — is a **durable gate**, not a synchronous conversation pause. (Direction is internal — NOT a gate.) The decision is always recorded in `works/<slug>/TASK.md`, so a run can pause and resume across sessions (or across an autonomous runtime's turn budget) without losing the question.
 
 **Every gate, both interactive and autonomous, does the same thing:**
 
@@ -149,7 +149,7 @@ The validator exists because films review badly when a structural piece is missi
 3. Desktop + mobile aspects specified (mobile N/A only for Brand sting).
 4. Channels named concretely (no "social" — name them).
 5. CTA verbatim (no "standard CTA").
-6. Approval gate names a human.
+6. Reviewer is "internal Validator A" (Direction has no human gate; this row stays to keep the validator structure intact).
 
 **Concept + signature**
 7. Concept is one sentence, one idea.
@@ -189,7 +189,7 @@ The validator exists because films review badly when a structural piece is missi
 ### B · Plan
 
 **Structure**
-1. Direction recap full (no drift from approved Direction).
+1. Direction recap full + creative-bet header (3 lines: Concept · Audio path · Signature · Arc) is the FIRST content in plan.md — reviewer must be able to decide in 5 seconds whether to redirect or keep reading.
 2. Signature card lines per matrix filled.
 3. Motion vocab ≥ 3 primitives (skip Sting; opt Reel).
 4. Tokens block present.
