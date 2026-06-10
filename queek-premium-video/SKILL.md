@@ -1,6 +1,6 @@
 ---
 name: queek-premium-video
-description: Produce premium Queek videos — launch films, industry films, feature spotlights, customer-side films, reels/TikToks, brand stings. Trigger whenever the user asks for any Queek video, ad, social cut, brand sting, hook reel, motion graphic, demo film, or anything that lands as a moving image under the Queek name, even if they don't say "video" explicitly. Also trigger for face-cam edits (founder talking-head + B-roll) and mobile recuts of existing masters.
+description: Produce premium Queek videos — launch films, industry films, feature spotlights, customer-side films, reels/TikToks, brand stings. Trigger whenever the user asks for any Queek video, ad, social cut, brand sting, hook reel, motion graphic, demo film, or anything that lands as a moving image under the Queek name, even if they don't say "video" explicitly. Also trigger for face-cam edits (founder talking-head + B-roll) and mobile recuts of existing masters. Additionally trigger — from ANY project, no Queek brand KB required — when the user asks to validate, lint, score, or scene-critic an existing HyperFrames composition against its reference (standalone quality-gate mode).
 ---
 
 # Queek premium video
@@ -11,11 +11,33 @@ This file is the entry point. Pull templates and project files as you go.
 
 **Invoke `/hyperframes` at the start of Make.** HF is the build runtime — every composition, every animation, every render goes through it. The skill never bypasses HF or hand-rolls equivalents. See §Make for the full toolchain + skill load list.
 
-## Root resolution
+## Root + brand resolution
 
-**The brand-knowledge root is the current working directory (cwd) — the directory the skill is invoked from.** Every "working project" path below (`memories/`, `research/`, `hyperframes-launches/`, `works/`, `files/`) resolves relative to cwd. The skill never hardcodes an absolute path or assumes a specific repo name.
+**The working-project root is the current working directory (cwd) — the directory the skill is invoked from.** Every "working project" path below (`memories/`, `research/`, `hyperframes-launches/`, `works/`, `files/`) resolves relative to cwd. The skill never hardcodes an absolute path or assumes a specific repo name. Skill-bundled files (templates, `references/`, `bin/`) resolve relative to the skill's own install directory, not cwd — see §Make audio-sanity for the pattern.
 
-Run the skill from the brand-KB root. Interactively that's the creative repo; under an autonomous runtime, the caller `cd`s into the brand-KB root before dispatching. Skill-bundled files (templates, `bin/`) resolve relative to the skill's own install directory, not cwd — see §Make audio-sanity for the pattern.
+### Brand source resolution (at Intake — first hit wins)
+
+1. **Explicit override** — `QUEEK_BRAND_ROOT` env var, or the user passing `--brand <path>` / naming a brand root in the request. If `<path>` is a file, load it as the brand spec; if a directory, load `<path>/memories/brand.md`.
+2. **Creative repo** — `memories/brand.md` at cwd → **full brand mode**: the complete KB (brand, asset libraries, voice options, references library, feedback memories) is available.
+3. **Project brand spec** — `design.md`, `frame.md`, or `brand.md` at cwd (or wherever the host project's CLAUDE.md says its design spec lives) → **brand-light mode**.
+4. **Nothing resolves** — proceed in **brand-light mode** with a FLAG (Pre-flight #2). The ONLY hard stop: the user explicitly asked for a **brand-bound Queek deliverable** (a master that must hit Queek brand standard) and no source resolved — then stop and ask for the brand root instead of improvising the brand.
+
+**Brand-light mode** — the project's own spec is the brand source; creative-repo-only resources degrade to FLAG, exactly like pre-flight rows #1/#4/#8 already do:
+
+- Palette · fonts · corners · depth · motion feel ← project `design.md` / `frame.md`.
+- Naming + voice rules ← project spec if it defines them; otherwise generic premium discipline (no filler, no hedges, no fabricated numbers/features).
+- Asset wrappers, Queek mockup/screenshot/component libraries, `research/REFERENCES.md`, feedback memories ← FLAG as missing; adapt per the existing pre-flight rows.
+- Queek-specific checks (Validator A items 22–23, critic items 6/10) score against the **resolved** spec instead of `memories/brand.md`.
+
+## Standalone validate / scene-critic (no Intake, no brand load)
+
+When the user asks to **validate, lint, inspect, score, or scene-critic an existing composition** — rather than produce a new film — skip the production flow entirely: no Intake, no pre-flight, no brand KB. Works from any cwd; the only dependencies are this skill's `references/scene-critic-rubric.md` and the HF CLI.
+
+Inputs: a composition dir + the reference(s) the scenes were built from. Optional: the project's scene spec / plan and design spec — use them when present, judge universal rubric items + reference only when absent.
+
+1. **Mechanical gate** — `npx hyperframes lint --json` + `npx hyperframes inspect --json` on the composition. `errorCount > 0` or hero-element overflow = FAIL with findings.
+2. **Scene critic** — per scene: snapshot the entry/mid/settle sequence in one HF command, verify every frame exists (re-snapshot if not — never judge a substitute), dispatch a fresh-context critic subagent per `references/scene-critic-rubric.md` with the reference + frames + (if present) the scene spec. Brand-relative items (6, 10) score against whatever spec §Brand source resolution finds at cwd; if none, score against the reference's own palette/content and say so in the verdict.
+3. **Report** — per-scene table (scene · score · anchor · fails) + overall **PASS/FAIL**. PASS = every scene clears both gates.
 
 ## Files
 
@@ -30,7 +52,7 @@ Run the skill from the brand-KB root. Interactively that's the creative repo; un
 | `references/asset-sourcing.md` | this skill | Sourcing any asset |
 | `research/REFERENCES.md` | working project | Pre-flight reference scan; picking refs to cite |
 | `research/patterns/pattern-failures.md` | working project | Pre-flight failures scan |
-| `memories/brand.md` | working project | Loading brand at Intake |
+| `memories/brand.md` | working project | Loading brand at Intake (full brand mode — see §Root + brand resolution for the fallback chain) |
 | `memories/asset-libraries.md` | working project | Resolving library paths |
 | `memories/voice-options.md` | working project | Picking a voice + TTS rules |
 
@@ -62,7 +84,7 @@ memories/<topic>.md                           updated if new insight
 
 Seven steps. Human approvals at Plan and each Make gate. Direction is internal.
 
-1. **Intake** — Load brand + asset libraries + REFERENCES + voice-options. Run pre-flight (below). Pick type. Ask for missing brief fields in one consolidated message; never infer. When the brief is complete: `mkdir works/<slug>/`, write `brief.md`, initialise `TASK.md` with phase skeleton. The project exists from this moment so any session cut can resume.
+1. **Intake** — Resolve the brand source (§Root + brand resolution) and load what resolves: brand + asset libraries + REFERENCES + voice-options in full brand mode; the project's `design.md`/`frame.md` in brand-light mode. Run pre-flight (below). Pick type. Ask for missing brief fields in one consolidated message; never infer. When the brief is complete: `mkdir works/<slug>/`, write `brief.md`, initialise `TASK.md` with phase skeleton. The project exists from this moment so any session cut can resume.
 2. **Direction (INTERNAL — no human gate)** — Write `works/<slug>/direction.md` (creative commitment: signature device · look · sound · references). Self-grade against Validator A. Rewrite until pass. Then proceed DIRECTLY to Plan in the same spawn — do NOT submit a gate, do NOT pause for human review. Direction is your creative scratch; the human reviews it inside Plan via the 3-line creative-bet header.
 3. **Plan (FIRST HUMAN GATE)** — Write `works/<slug>/plan.md` (per-scene contract). MUST open with a 3-line creative-bet header so reviewer can decide in 5 seconds: `**Concept:** <one sentence> · **Audio path:** <A/B/etc + reason> · **Signature device:** <name> · **Arc:** <beat → beat → beat>`. Source assets per `references/asset-sourcing.md`. Self-grade against Validator B. Rewrite until pass. Submit.
 4. **Make** — Audio · Video · Mobile, with three gates (below).
@@ -280,8 +302,8 @@ Pre-flight flags low-readiness — surface and ask before proceeding. Close gate
 
 | # | Check | If fails |
 |---|---|---|
-| 1 | `CLAUDE.md` loads at cwd (project-instructions layer) | FLAG — not load-bearing; `memories/brand.md` (#2) is the portable brand source. Absent when run outside the creative repo, which is fine. |
-| 2 | `memories/brand.md` loads at cwd | HARD STOP — this is the brand source of truth |
+| 1 | `CLAUDE.md` loads at cwd (project-instructions layer) | FLAG — not load-bearing; the brand source (#2) resolves per §Root + brand resolution. Absent when run outside the creative repo, which is fine. |
+| 2 | A brand source resolves (§Root + brand resolution: override → `memories/brand.md` → project `design.md`/`frame.md`/`brand.md`) | FLAG — proceed in brand-light mode, naming which source resolved (or none). HARD STOP only when the user explicitly asked for a brand-bound Queek deliverable and nothing resolves. |
 | 3 | `memories/asset-libraries.md` loads | NOTE + flag |
 | 4 | `research/REFERENCES.md` exists | FLAG — library missing, partially blind |
 | 5 | References for this type ≥ 2 (mature) · ≥ 1 (developing) · = 0 (first-of-type — allowed; carries Close item 11 obligation) | FLAG — name the count; if first-of-type, surface the Close item 11 lock |
@@ -515,6 +537,8 @@ Make MUST read, before any HTML:
 4. **Queek WhatsApp components** — resolve path via `memories/asset-libraries.md`. Premium reusable components for any chat-scene clone-and-adapt.
 5. **Premium-video feedback memories** — `feedback_read_refs_before_first_keyframe` · `feedback_creative_ambition` · `feedback_amplify_motion` · `feedback_premium_video_standard`. These are the bars prior films failed against; read them before authoring.
 6. **Prior-shipped HF references** — for any cited HF launch / promo / kinetic-type reference, open the actual `.html` in `hyperframes-launches/` or `research/references/`. The composition IS the spec — extract tokens, motion vocab, layout decisions.
+
+In brand-light mode, items 2–6 cover the host project's own equivalents instead (its design/frame spec, reference library, prior compositions); list whatever creative-repo libraries were unavailable in the scan block.
 
 Confirmation format — append this block to TASK.md Notes:
 

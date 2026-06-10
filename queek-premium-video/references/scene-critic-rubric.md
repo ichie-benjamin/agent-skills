@@ -4,7 +4,9 @@ Fresh-context critic subagent scores each scene against the reference it was
 built from. Builder cannot advance until critic returns PASS.
 
 The critic sees only: reference image(s), the 5-frame sequence + contact
-sheet, this rubric, the scene's Plan §6 block. Never the builder's
+sheet, this rubric, the scene's Plan §6 block (standalone mode: the
+project's scene spec if one exists; otherwise reference + rubric universal
+items only — motion items judged from the frame sequence). Never the builder's
 reasoning, effort, or request to be lenient. Judges the artifact, not the
 journey.
 
@@ -57,6 +59,9 @@ change across the sequence; judge static qualities from the settle frame.
 A premium motion-rich elevation of a REAL Queek concept is GOLD direction,
 not FLOOR — "elevated beyond the screenshot" ≠ "synthetic invented UI".
 
+When the creative-repo gold poles aren't on disk (standalone mode outside
+the repo), the scene's own cited reference is the GOLD pole.
+
 ## Universal items (every scene)
 
 Score only what is **visible in the frame(s)**. "Feels premium" is not a
@@ -80,8 +85,10 @@ check.
    report sequence missing.
 5. **Every element intentional + placed** — no clipped-off-frame, no
    overlap collision, no orphan default-styled box.
-6. **Brand color discipline** — light/neutral bg, green as accent only (no
-   green section fills), no rogue palette colors.
+6. **Brand color discipline** — colors per the resolved brand/design spec
+   (Queek default: light/neutral bg, green as accent only, no green section
+   fills); no rogue palette colors. If no spec resolved, judge against the
+   reference's own palette and say so.
 7. **Not the FLOOR pole** — not a flat card grid, not a generic centered
    fade, not synthetic looks-like-Queek UI.
 
@@ -108,8 +115,9 @@ separate:
    type at video scale, real depth, staged motion, cinematic composition.
    A pasted/replicated screenshot (flat, web-scale type, no motion) FAILS
    this even though "accurate."
-10. **Real content** — real ₦ amounts + `brand.md` names. No lorem, no
-    placeholder.
+10. **Real content** — real amounts + names from the resolved brand source
+    (`memories/brand.md` in the creative repo; the project's design/brand
+    spec elsewhere). No lorem, no placeholder.
 
 ## Motion-concept scenes (🟢 / 🔤) — add items 11-12
 
