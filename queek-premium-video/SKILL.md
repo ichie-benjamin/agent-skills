@@ -48,6 +48,7 @@ Inputs: a composition dir + the reference(s) the scenes were built from. Optiona
 | `references/reference-template.md` | this skill | Distilling an approved film into a reusable reference |
 | `references/brand-template.md` | this skill | §Brand setup — writing `memories/brand.md` for a project that doesn't have one |
 | `references/scene-critic-rubric.md` | this skill | Per-scene quality gate in Make §2 Video — critic rubric + subagent prompt |
+| `bin/plan-to-html.py` | this skill | Rendering `plan.md` as the interactive review page at Plan submit (re-run after every plan edit) |
 | `references/asset-sourcing.md` | this skill | Sourcing any asset |
 | `research/REFERENCES.md` | working project | Pre-flight reference scan; picking refs to cite |
 | `research/patterns/pattern-failures.md` | working project | Pre-flight failures scan |
@@ -85,7 +86,7 @@ Seven steps. Human approvals at Plan and each Make gate. Direction is internal.
 
 1. **Intake** — Load `memories/brand.md` (run §Brand setup first if it's missing) + asset libraries + REFERENCES + voice-options (each FLAGs per pre-flight if absent). Run pre-flight (below). Pick type. Ask for missing brief fields — and any §Brand setup gaps — in one consolidated message; never infer. When the brief is complete: `mkdir works/<slug>/`, write `brief.md`, initialise `TASK.md` with phase skeleton. The project exists from this moment so any session cut can resume.
 2. **Direction (INTERNAL — no human gate)** — Write `works/<slug>/direction.md` (creative commitment: signature device · look · sound · references). Self-grade against Validator A. Rewrite until pass. Then proceed DIRECTLY to Plan in the same spawn — do NOT submit a gate, do NOT pause for human review. Direction is your creative scratch; the human reviews it inside Plan via the 3-line creative-bet header.
-3. **Plan (FIRST HUMAN GATE)** — Write `works/<slug>/plan.md` (per-scene contract). MUST open with a 3-line creative-bet header so reviewer can decide in 5 seconds: `**Concept:** <one sentence> · **Audio path:** <A/B/etc + reason> · **Signature device:** <name> · **Arc:** <beat → beat → beat>`. Source assets per `references/asset-sourcing.md`. Self-grade against Validator B. Rewrite until pass. Submit.
+3. **Plan (FIRST HUMAN GATE)** — Write `works/<slug>/plan.md` (per-scene contract). MUST open with a 3-line creative-bet header so reviewer can decide in 5 seconds: `**Concept:** <one sentence> · **Audio path:** <A/B/etc + reason> · **Signature device:** <name> · **Arc:** <beat → beat → beat>`. Source assets per `references/asset-sourcing.md`. Self-grade against Validator B. Rewrite until pass. Then render the review page — `python3 "$SKILL_DIR/bin/plan-to-html.py" works/<slug>/plan.md` → `works/<slug>/plan.html` — and submit BOTH (the md is the contract; the html is the review surface: creative-bet hero, clickable scene timeline, accordion sections, per-section comments with select-to-quote, APPROVE/REVISE verdict, "Copy review" markdown export the human pastes back). On any plan edit, regenerate the html in the same commit — it must always render the md that's actually submitted.
 4. **Make** — Audio · Video · Mobile, with three gates (below).
 5. **Render** — Wire stems, render both masters.
 6. **Review** — Three axes: technical · brand · story · reference diff. Fail routes to the phase that owns the gap.
