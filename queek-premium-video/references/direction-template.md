@@ -1,6 +1,6 @@
 # Direction
 
-Copy this template, fill it, run Validator A (README §Validators), submit when it passes. Skip sections marked `–` in README §Section requirements matrix for the type. No "TBD" in required sections — ask the human instead.
+Copy this template, fill it, run Validator A (SKILL.md §Validators), submit when it passes. Skip sections marked `–` in SKILL.md §Section requirements matrix for the type. No "TBD" in required sections — ask the human instead.
 
 ## Header
 - Slug: `<kebab-case>`

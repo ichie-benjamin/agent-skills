@@ -1,6 +1,6 @@
 # Reference
 
-Distills an approved film into 2 pages that let the next agent lift patterns without opening the comp HTML. Lives at `research/references/ref-queek-<slug>.md`. Written at Close, auto-indexed into REFERENCES.md.
+Distills an approved film into 2 pages that let the next agent lift patterns without opening the comp HTML. Lives at `research/references/ref-<brand>-<slug>.md` (brand = queek in the creative repo). Written at Close, auto-indexed into REFERENCES.md.
 
 ## Frontmatter
 ```yaml
@@ -105,5 +105,5 @@ Concrete issues + the fix. Cross-link `feedback_*` memories where applicable.
 ## Index entry
 Append to `research/REFERENCES.md` under the type's section:
 ```
-- [queek-<slug>](references/ref-queek-<slug>.md) — <signature device> · <duration>s · <skeleton> · reusable: <one line>
+- [<brand>-<slug>](references/ref-<brand>-<slug>.md) — <signature device> · <duration>s · <skeleton> · reusable: <one line>
 ```

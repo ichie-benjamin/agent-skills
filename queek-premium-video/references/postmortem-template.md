@@ -36,7 +36,7 @@ Actual files updated or created. Or `no new insight` with a one-line reason.
 
 ## Verified writes
 - [ ] `works/<slug>/postmortem.md` — written + read back
-- [ ] `research/references/ref-queek-<slug>.md` — written + read back
+- [ ] `research/references/ref-<brand>-<slug>.md` — written + read back
 - [ ] `research/REFERENCES.md` — updated + read back
 - [ ] Other diffs read back
 

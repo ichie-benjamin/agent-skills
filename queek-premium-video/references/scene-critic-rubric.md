@@ -190,5 +190,5 @@ is a fail, not a pass.
 |---|---|---|---|---|
 | S1 | 2 | PASS | GOLD | (human-confirmed: taste anchor for the film) |
 | S2 | 1 | PASS | MID | |
-| S3 | 5 | ESCALATED | FLOOR→MID | type still under reference scale — human reviewing |
+| S3 | 3 | ESCALATED | FLOOR→MID | type still under reference scale — human reviewing |
 ```

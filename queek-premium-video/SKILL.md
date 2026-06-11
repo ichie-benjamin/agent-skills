@@ -85,7 +85,7 @@ memories/<topic>.md                           updated if new insight
 Seven steps. Human approvals at Plan and each Make gate. Direction is internal.
 
 1. **Intake** — Load `memories/brand.md` (run §Brand setup first if it's missing) + asset libraries + REFERENCES + voice-options (each FLAGs per pre-flight if absent). Run pre-flight (below). Pick type. Ask for missing brief fields — and any §Brand setup gaps — in one consolidated message; never infer. When the brief is complete: `mkdir works/<slug>/`, write `brief.md`, initialise `TASK.md` with phase skeleton. The project exists from this moment so any session cut can resume.
-2. **Direction (INTERNAL — no human gate)** — Write `works/<slug>/direction.md` (creative commitment: signature device · look · sound · references). Self-grade against Validator A. Rewrite until pass. Then proceed DIRECTLY to Plan in the same spawn — do NOT submit a gate, do NOT pause for human review. Direction is your creative scratch; the human reviews it inside Plan via the 3-line creative-bet header.
+2. **Direction (INTERNAL — no human gate)** — Write `works/<slug>/direction.md` (creative commitment: signature device · look · sound · references). Self-grade against Validator A. Rewrite until pass. Then proceed DIRECTLY to Plan in the same spawn — do NOT submit a gate, do NOT pause for human review. Direction is your creative scratch; the human reviews it inside Plan via the 4-line creative-bet header.
 3. **Plan (FIRST HUMAN GATE)** — Write `works/<slug>/plan.md` (per-scene contract). MUST open with a 4-line creative-bet header, one field per line, so reviewer can decide in 5 seconds:
    ```
    **Concept:** <one sentence>
