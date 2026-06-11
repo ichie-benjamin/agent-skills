@@ -18,9 +18,10 @@ Stdlib only. Markdown subset: ##/###/#### headings, tables, fenced code,
 task lists, ul/ol, blockquote, hr, bold/italic/inline-code/links.
 """
 
+from __future__ import annotations
+
 import argparse
 import html
-import json
 import re
 import sys
 from pathlib import Path
@@ -36,6 +37,11 @@ RE_HEX = re.compile(r"(?<![\w&;])#([0-9A-Fa-f]{6})\b")
 
 def esc(text: str) -> str:
     return html.escape(text, quote=False)
+
+
+def attr(text: str) -> str:
+    """Escape for use inside an HTML attribute value (quotes included)."""
+    return html.escape(str(text), quote=True)
 
 
 def inline(text: str) -> str:
@@ -212,11 +218,15 @@ def make_media_resolver(plan_path: Path, out_dir: Path):
         name = esc(Path(token).name)
         ext = token.rsplit(".", 1)[-1].lower()
         found = None
-        for root in roots:
-            cand = (root / token).resolve()
-            if cand.is_file():
-                found = cand
-                break
+        if token.startswith("~"):
+            cand = Path(token).expanduser().resolve()
+            found = cand if cand.is_file() else None
+        else:
+            for root in roots:
+                cand = (root / token).resolve()
+                if cand.is_file():
+                    found = cand
+                    break
         if not found:
             if "/" not in token:
                 return m.group(1)  # bare name, no path claim — leave as text
@@ -224,7 +234,7 @@ def make_media_resolver(plan_path: Path, out_dir: Path):
                 f'<span class="media m-miss" title="not on disk yet · '
                 f'sourced at Make (status D/R)">{name}</span>'
             )
-        rel = esc(os.path.relpath(found, out_dir))
+        rel = attr(os.path.relpath(found, out_dir))
         if ext in AUD_EXT:
             return (
                 f'<span class="m-audio"><audio controls preload="none" '
@@ -271,28 +281,41 @@ BET_KEYS = [
 ]
 
 
+BET_LINE = re.compile(
+    r"^(?:[-*]\s+)?\*\*(?:Concept|Audio\s*path|Signature(?:\s*device)?|Arc):?\*\*", re.I
+)
+BET_NEXT = r"(?=\s*·?\s*\*\*(?:Concept|Audio\s*path|Signature(?:\s*device)?|Arc):?\*\*|$)"
+
+
 def parse_plan(text: str):
     lines = text.splitlines()
     title = "Plan"
     bet = {}
     validator = ""
     preamble, sections, current = [], [], None
+    in_fence = False
 
     for raw in lines:
         s = raw.strip()
+        if s.startswith("```"):
+            in_fence = not in_fence
+            (current["lines"] if current else preamble).append(raw)
+            continue
+        if in_fence:
+            (current["lines"] if current else preamble).append(raw)
+            continue
         m = re.match(r"^#\s+(.*)$", s)
         if m and title == "Plan":
             title = m.group(1).strip()
             continue
-        bet_line = False
-        for key, pat in BET_KEYS:
-            bm = re.match(rf"^(?:[-*]\s+)?{pat}\s*(.+)$", s)
-            if bm:
-                bet_line = True
-                if key not in bet:
+        if BET_LINE.match(s):
+            # header fields may sit one per line or ·-joined on a single line
+            for key, pat in BET_KEYS:
+                bm = re.search(rf"{pat}\s*(.+?){BET_NEXT}", s)
+                if bm and key not in bet:
                     bet[key] = bm.group(1).strip(" ·")
-        if bet_line and current is None:
-            continue  # shown in the hero bet card; don't duplicate in preamble
+            if current is None:
+                continue  # shown in the hero bet card; don't duplicate in preamble
         if re.match(r"^`?Plan validator:", s):
             validator = s.strip("`")
         m = re.match(r"^##\s+(.*)$", s)
@@ -710,7 +733,7 @@ JS = r"""
       pill.style.display = 'block';
       pill.style.left = Math.max(12, rect.left + rect.width / 2 - 55 + window.scrollX) + 'px';
       pill.style.top = (rect.top + window.scrollY - 44) + 'px';
-      pill._quote = txt.slice(0, 400);
+      pill._quote = txt.replace(/\s+/g, ' ').slice(0, 400);
       pill._sec = body.closest('.sec').id;
     }, 0);
   });
@@ -777,8 +800,8 @@ JS = r"""
       if (!mine.length) return;
       lines.push('## ' + sec.getAttribute('data-name'));
       mine.forEach(function (c) {
-        if (c.quote) lines.push('- > ' + c.quote);
-        lines.push((c.quote ? '  ' : '- ') + c.text);
+        if (c.quote) lines.push('- (re: "' + c.quote + '") ' + c.text);
+        else lines.push('- ' + c.text);
       });
       lines.push('');
     });
@@ -821,7 +844,7 @@ PAGE = """<!doctype html>
 <title>__TITLE__ · plan review</title>
 <style>__CSS__</style>
 </head>
-<body data-plan="__PLANKEY__" data-title="__TITLE__">
+<body data-plan="__PLANKEY__" data-title="__TITLEATTR__">
 <div class="layout">
   <aside class="toc">
     <p class="brand">Plan review</p>
@@ -907,7 +930,7 @@ def build(plan_path: Path, out_path: Path, title_override: str | None):
                 f"{esc(s['title'])}</a>"
             )
         body.append(
-            f'<section class="sec" id="{sid}" data-name="{esc(sec["title"])}">'
+            f'<section class="sec" id="{sid}" data-name="{attr(sec["title"])}">'
             f"<details{' open' if idx == 1 else ''}>"
             f'<summary><span class="num">{num}</span>'
             f'<span class="st">{inline(clean_title)}</span>'
@@ -949,7 +972,7 @@ def build(plan_path: Path, out_path: Path, title_override: str | None):
             cls = " peak" if s["peak"] else ""
             segs.append(
                 f'<a class="tseg{cls}" href="#{s["id"]}" style="flex:{dur:g}" '
-                f'title="S{s["num"]} · {esc(s["name"])} ({s["a"]:g}–{s["b"]:g}s)">'
+                f'title="S{s["num"]} · {attr(s["name"])} ({s["a"]:g}–{s["b"]:g}s)">'
                 f'<b>S{s["num"]}</b><span>{dur:g}s</span></a>'
             )
         timeline_html = (
@@ -984,9 +1007,16 @@ def build(plan_path: Path, out_path: Path, title_override: str | None):
             f"<dl>{rows}</dl></div>"
         )
 
-    plan_key = re.sub(r"[^\w-]+", "-", title.lower()).strip("-") or "plan"
+    # key review state by title AND project dir so same-titled plans don't clobber
+    plan_key = "-".join(
+        p for p in (
+            re.sub(r"[^\w-]+", "-", title.lower()).strip("-"),
+            re.sub(r"[^\w-]+", "-", plan_path.resolve().parent.name.lower()).strip("-"),
+        ) if p
+    ) or "plan"
     page = (
         PAGE.replace("__TITLE__", esc(title))
+        .replace("__TITLEATTR__", attr(title))
         .replace("__PLANKEY__", plan_key)
         .replace("__TOC__", "".join(toc))
         .replace("__CHIPS__", "".join(chips))

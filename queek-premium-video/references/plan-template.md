@@ -1,8 +1,17 @@
 # Plan
 
-Copy this template, fill it, run Validator B (README §Validators), submit when it passes. Skip sections marked `–` in README §Section requirements matrix for the type.
+Copy this template, fill it, run Validator B (SKILL.md §Validators), submit when it passes. Skip sections marked `–` in SKILL.md §Section requirements matrix for the type.
 
 All times are absolute from `t=0` unless marked scene-relative.
+
+The FIRST content of plan.md — above §1, before anything else — is the 4-line creative-bet header (Validator B.1; the plan-review page renders it as the hero card):
+
+```
+**Concept:** <one sentence, one idea>
+**Audio path:** <A or B + one-line reason if non-default for the type>
+**Signature device:** <name>
+**Arc:** <beat → beat → beat>
+```
 
 ## 1 · Direction recap
 Copy the approved Direction fields here in full. Plans stand alone — don't link.
@@ -64,7 +73,7 @@ One block per scene. Fields apply per matrix.
 - Note:         <why these choices>
 ```
 
-Bucket guidance (README §Make): **UI-anchored** = scene shows a real product surface (uses 🎨 or 📺). **Motion-concept** = scene conveys a lifecycle moment via the signature device (uses 🟢 🔤 only, no UI chrome).
+Bucket guidance (SKILL.md §Make): **UI-anchored** = scene shows a real product surface (uses 🎨 or 📺). **Motion-concept** = scene conveys a lifecycle moment via the signature device (uses 🟢 🔤 only, no UI chrome).
 
 Captions belong in §8, not in scene blocks.
 

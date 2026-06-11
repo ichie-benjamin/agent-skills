@@ -5,7 +5,7 @@ description: Produce premium Queek videos — launch films, industry films, feat
 
 # Queek premium video
 
-Build Queek videos that match the team's premium bar. Flow has two human approvals: Plan, each Make gate. Everything else runs without interruption — Direction is Dara's internal creative commitment (self-validated, no human gate); the concept is reviewed inside Plan via the 3-line creative-bet header at the top of `plan.md`.
+Build Queek videos that match the team's premium bar. Flow has two human approvals: Plan, each Make gate. Everything else runs without interruption — Direction is Dara's internal creative commitment (self-validated, no human gate); the concept is reviewed inside Plan via the 4-line creative-bet header at the top of `plan.md`.
 
 This file is the entry point. Pull templates and project files as you go.
 
@@ -34,7 +34,7 @@ When the user asks to **validate, lint, inspect, score, or scene-critic an exist
 Inputs: a composition dir + the reference(s) the scenes were built from. Optional: the project's scene spec / plan and design spec — use them when present, judge universal rubric items + reference only when absent.
 
 1. **Mechanical gate** — `npx hyperframes lint --json` + `npx hyperframes inspect --json` on the composition. `errorCount > 0` or hero-element overflow = FAIL with findings.
-2. **Scene critic** — per scene: snapshot the entry/mid/settle sequence in one HF command, verify every frame exists (re-snapshot if not — never judge a substitute), dispatch a fresh-context critic subagent per `references/scene-critic-rubric.md` with the reference + frames + (if present) the scene spec. Brand-relative items (6, 10) score against `memories/brand.md` if the project has one, else its design/brand spec, else the reference's own palette/content — the verdict names which. Standalone mode never runs §Brand setup — it judges with what's on disk.
+2. **Scene critic** — per scene: snapshot the canonical 5-frame sequence (entry · +25% · mid · +75% · settle) in one HF command, verify every frame exists (re-snapshot if not — never judge a substitute), dispatch a fresh-context critic subagent per `references/scene-critic-rubric.md` with the reference + frames + (if present) the scene spec. Brand-relative items (6, 10) score against `memories/brand.md` if the project has one, else its design/brand spec, else the reference's own palette/content — the verdict names which. Standalone mode never runs §Brand setup — it judges with what's on disk.
 3. **Report** — per-scene table (scene · score · anchor · fails) + overall **PASS/FAIL**. PASS = every scene clears both gates.
 
 ## Files
@@ -73,7 +73,7 @@ HF owns the composition **and the render output** — codec, bitrate, and where 
 At Close, the approved project also writes:
 
 ```
-research/references/ref-queek-<slug>.md      new reference
+research/references/ref-<brand>-<slug>.md   new reference (brand = queek in the creative repo)
 research/REFERENCES.md                        updated index
 memories/<topic>.md                           updated if new insight
 ```
@@ -86,7 +86,13 @@ Seven steps. Human approvals at Plan and each Make gate. Direction is internal.
 
 1. **Intake** — Load `memories/brand.md` (run §Brand setup first if it's missing) + asset libraries + REFERENCES + voice-options (each FLAGs per pre-flight if absent). Run pre-flight (below). Pick type. Ask for missing brief fields — and any §Brand setup gaps — in one consolidated message; never infer. When the brief is complete: `mkdir works/<slug>/`, write `brief.md`, initialise `TASK.md` with phase skeleton. The project exists from this moment so any session cut can resume.
 2. **Direction (INTERNAL — no human gate)** — Write `works/<slug>/direction.md` (creative commitment: signature device · look · sound · references). Self-grade against Validator A. Rewrite until pass. Then proceed DIRECTLY to Plan in the same spawn — do NOT submit a gate, do NOT pause for human review. Direction is your creative scratch; the human reviews it inside Plan via the 3-line creative-bet header.
-3. **Plan (FIRST HUMAN GATE)** — Write `works/<slug>/plan.md` (per-scene contract). MUST open with a 3-line creative-bet header so reviewer can decide in 5 seconds: `**Concept:** <one sentence> · **Audio path:** <A/B/etc + reason> · **Signature device:** <name> · **Arc:** <beat → beat → beat>`. Source assets per `references/asset-sourcing.md`. Self-grade against Validator B. Rewrite until pass. Then render the review page — `python3 "$SKILL_DIR/bin/plan-to-html.py" works/<slug>/plan.md` → `works/<slug>/plan.html` — and submit BOTH (the md is the contract; the html is the review surface: creative-bet hero, clickable scene timeline, accordion sections, per-section comments with select-to-quote, APPROVE/REVISE verdict, "Copy review" markdown export the human pastes back). Media paths cited in the plan render live: audio files (SFX, beds) as inline players, images and clips as click-to-preview chips — so every **G**-status asset is auditioned by the reviewer at the Plan gate, while D/R assets show as pending chips until Make sources them. On any plan edit, regenerate the html in the same commit — it must always render the md that's actually submitted.
+3. **Plan (FIRST HUMAN GATE)** — Write `works/<slug>/plan.md` (per-scene contract). MUST open with a 4-line creative-bet header, one field per line, so reviewer can decide in 5 seconds:
+   ```
+   **Concept:** <one sentence>
+   **Audio path:** <A/B + reason if non-default>
+   **Signature device:** <name>
+   **Arc:** <beat → beat → beat>
+   ``` Source assets per `references/asset-sourcing.md`. Self-grade against Validator B. Rewrite until pass. Then render the review page — `python3 "$SKILL_DIR/bin/plan-to-html.py" works/<slug>/plan.md` → `works/<slug>/plan.html` — and submit BOTH (the md is the contract; the html is the review surface: creative-bet hero, clickable scene timeline, accordion sections, per-section comments with select-to-quote, APPROVE/REVISE verdict, "Copy review" markdown export the human pastes back). Media paths cited in the plan render live: audio files (SFX, beds) as inline players, images and clips as click-to-preview chips — so every **G**-status asset is auditioned by the reviewer at the Plan gate, while D/R assets show as pending chips until Make sources them. On any plan edit, regenerate the html in the same commit — it must always render the md that's actually submitted.
 4. **Make** — Audio · Video · Mobile, with three gates (below).
 5. **Render** — Wire stems, render both masters.
 6. **Review** — Three axes: technical · brand · story · reference diff. Fail routes to the phase that owns the gap.
@@ -195,8 +201,8 @@ The validator exists because films review badly when a structural piece is missi
 19. No banned filler in the Direction text itself.
 20. No banned hedges.
 21. No banned competitors.
-22. Naming: "Queek AI" / "AI Agent" — never "bot", "Qee", "chatbot".
-23. Light bg, green accent only (no green fills).
+22. Naming per `memories/brand.md` rules (Queek's: "Queek AI" / "AI Agent" — never "bot", "Qee", "chatbot"; non-Queek projects use their own).
+23. Palette discipline per `memories/brand.md` (Queek's: light bg, green accent only, no green fills).
 24. No fabricated numbers / partners / features.
 
 **Production resources**
@@ -211,7 +217,7 @@ The validator exists because films review badly when a structural piece is missi
 ### B · Plan
 
 **Structure**
-1. Direction recap full + creative-bet header (3 lines: Concept · Audio path · Signature · Arc) is the FIRST content in plan.md — reviewer must be able to decide in 5 seconds whether to redirect or keep reading.
+1. Direction recap full + creative-bet header (4 lines, one per field: Concept · Audio path · Signature device · Arc) is the FIRST content in plan.md — reviewer must be able to decide in 5 seconds whether to redirect or keep reading.
 2. Signature card lines per matrix filled.
 3. Motion vocab ≥ 3 primitives (skip Sting; opt Reel).
 4. Tokens block present.
@@ -236,7 +242,6 @@ The validator exists because films review badly when a structural piece is missi
 **HF safety**
 19. HF safety contract block all checked. See `references/plan-template.md` §5.
 
-**Audio**
 **Audio** — path-aware (Path A and Path B are peer-gated; Brand sting uses §7-sting only)
 
 20. Audio path declared (A or B) in §7 with one-line reason if non-default for type per matrix.
@@ -318,7 +323,6 @@ Output format:
 Pre-flight for <slug> (<type>)
 ✓ <passed>
 ⚠ <flagged> — <reason>
-✗ <hard-stopped> — <reason>
 
 Proceed? [Y/N]
 ```
@@ -328,7 +332,7 @@ Proceed? [Y/N]
 | # | Check | Pass condition |
 |---|---|---|
 | 1 | `works/<slug>/postmortem.md` exists | Every required section per template non-empty |
-| 2 | `research/references/ref-queek-<slug>.md` exists | Follows `references/reference-template.md` |
+| 2 | `research/references/ref-<brand>-<slug>.md` exists | Follows `references/reference-template.md` |
 | 3 | `research/REFERENCES.md` index updated | New entry under the right type |
 | 4 | Renders saved | Desktop + (if applicable) mobile mp4 |
 | 5 | Audio deliverables saved | Stems + master + audio-timeline.json |
@@ -337,7 +341,7 @@ Proceed? [Y/N]
 | 8 | Read-back verified | Items 1, 2, 3, 7 re-read after write |
 | 9 | Three-axis review green | Technical · brand · story all pass |
 | 10 | `TASK.md` in closed state | Only `[x]` or `[-]` items remain |
-| 11 | First-of-type reference obligation (only when pre-flight #5 = 0) | New entry seeded under this type in `research/REFERENCES.md` AND `research/references/ref-queek-<slug>.md` written from `references/reference-template.md`. |
+| 11 | First-of-type reference obligation (only when pre-flight #5 = 0) | New entry seeded under this type in `research/REFERENCES.md` AND `research/references/ref-<brand>-<slug>.md` written from `references/reference-template.md`. |
 
 Output:
 
@@ -576,7 +580,7 @@ Per scene:
 The agent may not start scene N+1 until scene N passes this gate. Two checks, in order:
 
 1. **HF gate suite** (mechanical — *is it broken?*): lint · inspect · validate · animation-map. Three failed snapshots on the same scene means the reference doesn't match the Plan's intent, or the technique doesn't seek — stop iterating motion, inline the scene, swap the technique, or route back to Plan.
-2. **Scene critic** (premium — *is it good?*): a **fresh-context critic subagent** scores the scene against the reference it was built from, on the observable rubric in `references/scene-critic-rubric.md`. **Judge a frame SEQUENCE across the scene window (entrance→settle), not one still** — premium lives in the motion, and a single frozen frame can't show whether it animated well or just popped in. Snapshot ~5–7 frames in one HF command (HF overwrites the dir per run). **Re-snapshot on any missing frame; never let the critic judge a substitute frame** (a verdict about the wrong frame is invalid). Self-grading is banned — the builder is primed to declare "done" (see the vo-grade lesson). Invoke `Agent` (`subagent_type: general-purpose`), fresh each scene, with the prompt template in the rubric. The critic returns `PASS | FAIL + fails list`.
+2. **Scene critic** (premium — *is it good?*): a **fresh-context critic subagent** scores the scene against the reference it was built from, on the observable rubric in `references/scene-critic-rubric.md`. **Judge a frame SEQUENCE across the scene window (entrance→settle), not one still** — premium lives in the motion, and a single frozen frame can't show whether it animated well or just popped in. Snapshot the canonical 5-frame sequence (entry · +25% · mid · +75% · settle) in one HF command (HF overwrites the dir per run). **Re-snapshot on any missing frame; never let the critic judge a substitute frame** (a verdict about the wrong frame is invalid). Self-grading is banned — the builder is primed to declare "done" (see the vo-grade lesson). Invoke `Agent` (`subagent_type: general-purpose`), fresh each scene, with the prompt template in the rubric. The critic returns `PASS | FAIL + fails list`.
 
 Loop: **FAIL → apply the critic's fixes → re-render → re-critic, max 3 rounds.** Still FAIL after 3 → escalate to the human with the gap list (not a pass; the scene stays open). PASS → log the verdict to the TASK.md *Scene critic log* (format in the rubric) → advance.
 
@@ -647,7 +651,7 @@ Render via `/hyperframes` per the render targets in the Plan. HF owns codec, bit
 
 **Technical** — Lint, validate, inspect all clean · animation-map: no unintended `paced-fast` / `paced-slow` / `collision` / `offscreen` · dimensions match Plan · sync ≤ 50ms (captions within ±100ms) · no drops or crackle.
 
-**Brand** — First frame holds muted (would a viewer scroll past?) · color discipline per scene · "Queek AI" / "AI Agent" naming everywhere · no banned filler · approved copy verbatim · CTA legible at thumbnail muted.
+**Brand** — First frame holds muted (would a viewer scroll past?) · color discipline per scene · naming per `memories/brand.md` everywhere ("Queek AI" / "AI Agent" in the creative repo) · no banned filler · approved copy verbatim · CTA legible at thumbnail muted.
 
 **Story** — Final 1s holds the close · hook → payoff under 3s for short-form, under 8s for long-form · energy arc actually lands · no competitors · no fabricated numbers.
 

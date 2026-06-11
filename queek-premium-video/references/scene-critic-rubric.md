@@ -3,10 +3,11 @@
 Fresh-context critic subagent scores each scene against the reference it was
 built from. Builder cannot advance until critic returns PASS.
 
-The critic sees only: reference image(s), the 5-frame sequence + contact
-sheet, this rubric, the scene's Plan §6 block (standalone mode: the
-project's scene spec if one exists; otherwise reference + rubric universal
-items only — motion items judged from the frame sequence). Never the builder's
+The critic sees only: reference image(s), the canonical 5-frame sequence
+(entry · +25% · mid · +75% · settle), this rubric, the scene's Plan §6
+block (standalone mode: the project's scene spec if one exists; otherwise
+reference + rubric universal items only — motion items judged from the
+frame sequence). Never the builder's
 reasoning, effort, or request to be lenient. Judges the artifact, not the
 journey.
 
@@ -19,18 +20,20 @@ for each scene N in order:
       npx hyperframes lint --json       -> if errorCount > 0, auto-FAIL with findings
       npx hyperframes inspect --json    -> if overflow on hero element, auto-FAIL
       (no critic dispatched until both pass)
-  snapshot 3 frames via HF: --at start, mid, settle
+  snapshot the canonical 5-frame sequence via HF in ONE command:
+      --at entry, +25%, mid, +75%, settle
   ORCHESTRATOR verifies every frame exists AND is non-trivial in size:
       missing/blank -> re-snapshot
       still missing after 1 re-snapshot -> HARD-FAIL the gate (tooling broken)
-  if REPLICA MODE (project cites a ref video):
-      runtime auto-injects ref-<slug>-source/frames/scene-NN-{entry,mid,settle}.png
-      into the critic prompt — Dara does NOT attach them manually
-  --> dispatch CRITIC subagent (Agent tool, subagent_type=scene-critic)
-        inputs: refs + 3-frame sequence + contact-sheet + this rubric + Plan §6
+  if REPLICA MODE (only when the host project runs a replica pipeline and
+      provides ref-<slug>-source/frames/): the orchestrator attaches
+      scene-NN-{entry,mid,settle}.png reference frames to the critic prompt
+  --> dispatch CRITIC subagent (Agent tool, subagent_type=general-purpose,
+        fresh context each scene — matches SKILL §Per-scene quality gate)
+        inputs: refs + 5-frame sequence + this rubric + Plan §6
         output: VERDICT PASS|FAIL + score + anchor + fails + fixes
-  if FAIL: apply fixes, re-snapshot, re-critic (max 5 rounds — server-enforced
-           in mcp_server.py; 6th dispatch denied by policy)
+  if FAIL: apply fixes, re-snapshot, re-critic (max 3 rounds, then escalate
+           to the human with the gap list — per SKILL §Per-scene quality gate)
   if convergence stalls (PASS-count flat/dropping 2 rounds in a row): escalate
                                                                        early
   if PASS: log to TASK.md, advance to N+1
@@ -73,8 +76,8 @@ check.
    labels ≥ 16px, AND ≥ the Plan's banded hero size. Web-UI type = FAIL.
 3. **Depth where reference has it** — shadow, glow, layering, elevation.
    Flat color-blocked fills when the reference shows depth = FAIL.
-4. **Motion registers across the 3-frame sequence (entry → mid → settle)**
-   — compare frames in time order. The hero element must visibly change
+4. **Motion registers across the frame sequence (entry → mid → settle
+   anchors)** — compare frames in time order. The hero element must visibly change
    between entry and mid (first-half motion) AND between mid and settle
    (second-half motion or hold). If entry and mid look pixel-similar on the
    hero element when the Plan says motion happens in that window = FAIL.
@@ -126,7 +129,7 @@ separate:
 12. **No UI chrome invented** — brand-real content without fabricated
     product surfaces.
 
-## REPLICA MODE — add items 13-14 (only when ref video is cited)
+## REPLICA MODE — add items 13-15 (only when the host project runs a replica pipeline: a ref video is cited AND `ref-<slug>-source/frames/` exists; skip otherwise)
 
 13. **Composition relates to reference at matching timestamp.** Compare
     Dara's snapshot at t=X to the reference's frame at t=X (auto-injected).
@@ -138,8 +141,8 @@ separate:
     Count visible chars: if reference at t=0.2s shows ~N chars and Dara's
     matching frame shows all chars, FAIL (wrong animation primitive — fade
     or slide-in instead of type-on).
-15. **SFX wired from library, not baked.** If `works/<slug>/sfx-picks.md`
-    exists, `composition/index.html` MUST contain
+15. **SFX wired from library, not baked.** Replica-pipeline projects only:
+    if `works/<slug>/sfx-picks.md` exists, `composition/index.html` MUST contain
     `<audio src="files/audio/<file>.mp3">` tags per picked onset — NOT a
     single baked `master.mp3`. Library citation is auditable; baked master
     isn't. Check by reading the composition source.
