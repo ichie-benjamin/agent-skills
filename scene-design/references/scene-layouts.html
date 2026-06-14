@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Scene layout reference · archetypes</title>
+<style>
+  :root{
+    --bg:#FBF4E3; --ink:#1C1A15; --muted:#6F6A5E; --line:#E3DCC9;
+    --accent:#0E6B43; --accent-soft:#E7F0EA; --card:#FFFDF8;
+    --serif:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,sans-serif;
+    --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.6 var(--sans);
+    -webkit-font-smoothing:antialiased}
+  header{max-width:1180px;margin:0 auto;padding:48px 32px 8px}
+  header .ey{font:600 11px/1 var(--sans);letter-spacing:.22em;text-transform:uppercase;
+    color:var(--accent);margin:0 0 12px}
+  header h1{font:600 32px/1.15 var(--serif);margin:0 0 8px}
+  header p{color:var(--muted);max-width:60ch;margin:0}
+  .grid{max-width:1180px;margin:0 auto;padding:28px 32px 80px;
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:22px}
+  .arch{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;
+    box-shadow:0 1px 2px rgba(28,26,21,.04),0 16px 40px -32px rgba(28,26,21,.4)}
+  .demo{position:relative;aspect-ratio:16/9;background:var(--bg);
+    border-bottom:1px solid var(--line);container-type:inline-size;overflow:hidden}
+  .meta{padding:14px 16px 16px}
+  .meta .n{font:600 10px/1 var(--mono);color:var(--accent);background:var(--accent-soft);
+    border-radius:6px;padding:5px 7px;margin-right:8px}
+  .meta h2{display:inline;font:600 16px/1.3 var(--sans);letter-spacing:-.01em}
+  .meta .when{color:var(--muted);margin:9px 0 11px;font-size:13px}
+  .meta dl{margin:0;display:grid;grid-template-columns:64px 1fr;gap:5px 10px;font-size:12.5px}
+  .meta dt{font:600 9px/1.6 var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .meta dd{margin:0}
+  /* shared demo primitives (sized in container-query units to scale with the card) */
+  .pad{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;text-align:center;padding:7cqw 9cqw;gap:2.4cqw}
+  .acc{color:var(--accent)}
+  .lbl{font:700 2.6cqw/1.3 var(--sans);letter-spacing:.24em;text-transform:uppercase;color:var(--muted);margin:0}
+  .hero{font:700 8cqw/1.05 var(--serif);letter-spacing:-.01em;margin:0}
+  .sub{font:500 3.6cqw/1.3 var(--sans);color:var(--muted);margin:0}
+  .seam{position:absolute;top:0;bottom:0;left:50%;width:1px;background:var(--line)}
+  .col{position:absolute;top:0;bottom:0;width:50%;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:1.6cqw}
+  .chip{display:inline-block;font:600 2.6cqw/1 var(--sans);padding:1.6cqw 3cqw;border-radius:999px;
+    background:var(--accent-soft);color:var(--accent);border:1px solid #CDE3D6}
+  .row{display:flex;align-items:baseline;gap:2.4cqw;width:100%}
+  .row .ix{font:700 3.2cqw/1 var(--mono);color:var(--muted)}
+  .row .tx{font:600 3.4cqw/1.2 var(--sans)}
+  .node{position:absolute;width:13cqw;height:13cqw;border-radius:14%;background:#fff;
+    border:1px solid var(--line);display:flex;align-items:center;justify-content:center;
+    font:700 2.4cqw/1 var(--sans);color:var(--muted);box-shadow:0 4cqw 8cqw -5cqw rgba(28,26,21,.3)}
+  .link{position:absolute;height:1px;background:var(--line)}
+  .flowdot{position:absolute;width:2.2cqw;height:2.2cqw;border-radius:50%;background:var(--accent)}
+  pre.code{position:absolute;inset:9cqw 10cqw;margin:0;background:#23211B;border-radius:2cqw;
+    padding:3.4cqw 4cqw;font:2.5cqw/1.7 var(--mono);color:#8C887C;overflow:hidden}
+  pre.code .hot{color:#EDEAE0;background:rgba(14,107,67,.4);border-radius:1cqw;padding:0 1cqw}
+  .num{font:700 22cqw/.9 var(--serif);letter-spacing:-.02em;margin:0}
+  blockquote.q{font:italic 500 5cqw/1.3 var(--serif);margin:0;max-width:80cqw}
+  cite.cite{font:600 2.6cqw/1.4 var(--sans);color:var(--muted);font-style:normal}
+  .device{width:18cqw;height:18cqw;border-radius:50%;border:1.5cqw solid var(--accent);
+    box-shadow:0 0 0 2.4cqw var(--accent-soft);display:flex;align-items:center;justify-content:center;
+    font:700 4cqw/1 var(--sans);color:var(--accent)}
+  .mark{width:3cqw;height:3cqw;border-radius:50%;background:var(--muted);opacity:.4}
+  .grain{position:absolute;inset:0;opacity:.5;
+    background:radial-gradient(circle at 30% 40%,rgba(28,26,21,.05),transparent 40%),
+    radial-gradient(circle at 70% 65%,rgba(28,26,21,.04),transparent 45%)}
+</style>
+</head>
+<body>
+<header>
+  <p class="ey">Scene design · reference</p>
+  <h1>Scene layout archetypes</h1>
+  <p>The ten reusable scene layouts. Don't invent cold — pick the one that fits the beat, then adapt its treatment. Each demo shows how the layout sits in frame; the build adds the motion.</p>
+</header>
+
+<div class="grid">
+
+  <!-- 1 -->
+  <article class="arch">
+    <div class="demo"><div class="pad">
+      <p class="hero">Most AI fails<br><span class="acc">fluently</span>.</p>
+    </div></div>
+    <div class="meta"><span class="n">01</span><h2>Hero Statement</h2>
+      <p class="when">A single sentence carries the whole beat — openings, turns, the closing punch.</p>
+      <dl><dt>Layout</dt><dd>Centered, big negative space above.</dd>
+        <dt>Motion</dt><dd>Per-word reveal, breath-hold on the hero word.</dd>
+        <dt>Color</dt><dd>Ink on bg; one accent on the pivot word only.</dd></dl>
+    </div>
+  </article>
+
+  <!-- 2 -->
+  <article class="arch">
+    <div class="demo"><div class="pad">
+      <p class="lbl">Term</p>
+      <p class="hero" style="font-size:9cqw">Context window</p>
+      <p class="sub">what the model can see at once</p>
+    </div></div>
+    <div class="meta"><span class="n">02</span><h2>Term / Definition Card</h2>
+      <p class="when">A term must land before the argument uses it.</p>
+      <dl><dt>Layout</dt><dd>Label above · term hero (serif) · definition beneath.</dd>
+        <dt>Motion</dt><dd>Term sets first, definition fades up after a beat.</dd>
+        <dt>Color</dt><dd>Neutral; accent only if the term IS the concept.</dd></dl>
+    </div>
+  </article>
+
+  <!-- 3 -->
+  <article class="arch">
+    <div class="demo">
+      <div class="seam"></div>
+      <div class="col" style="left:0"><p class="lbl">Vibe coder</p><p class="hero" style="font-size:6cqw;color:var(--muted)">guesses</p></div>
+      <div class="col" style="right:0"><p class="lbl acc">Engineer</p><p class="hero acc" style="font-size:6cqw">verifies</p></div>
+    </div>
+    <div class="meta"><span class="n">03</span><h2>Contrast Split</h2>
+      <p class="when">A comparison or tension between two things.</p>
+      <dl><dt>Layout</dt><dd>Split with a seam; each side labeled.</dd>
+        <dt>Motion</dt><dd>Sides enter from opposite edges, meet at the seam.</dd>
+        <dt>Color</dt><dd>One side neutral, the other the tension accent.</dd></dl>
+    </div>
+  </article>
+
+  <!-- 4 -->
+  <article class="arch">
+    <div class="demo"><div class="pad" style="align-items:stretch;justify-content:center;gap:2cqw;padding:9cqw 12cqw">
+      <div class="row"><span class="ix">1</span><span class="tx">Plan before acting</span></div>
+      <div class="row"><span class="ix acc">2</span><span class="tx acc">Retrieve the right context</span></div>
+      <div class="row"><span class="ix">3</span><span class="tx">Verify the output</span></div>
+    </div></div>
+    <div class="meta"><span class="n">04</span><h2>Enumerated Reveal</h2>
+      <p class="when">A short list (3–5) where the count itself matters.</p>
+      <dl><dt>Layout</dt><dd>Left-aligned list on a baseline grid, index numerals.</dd>
+        <dt>Motion</dt><dd>Items reveal one-by-one in rhythm with narration.</dd>
+        <dt>Color</dt><dd>Neutral list; accent the one emphasized item.</dd></dl>
+    </div>
+  </article>
+
+  <!-- 5 -->
+  <article class="arch">
+    <div class="demo">
+      <div class="link" style="left:24cqw;right:50cqw;top:50%"></div>
+      <div class="link" style="left:50cqw;right:24cqw;top:50%"></div>
+      <div class="node" style="left:18cqw;top:41%">in</div>
+      <div class="node acc" style="left:43.5cqw;top:41%;border-color:var(--accent);color:var(--accent)">core</div>
+      <div class="node" style="right:18cqw;top:41%">out</div>
+      <div class="flowdot" style="left:38cqw;top:calc(50% - 1.1cqw)"></div>
+    </div>
+    <div class="meta"><span class="n">05</span><h2>System Diagram</h2>
+      <p class="when">How parts connect or data moves — pipeline, loop, architecture.</p>
+      <dl><dt>Layout</dt><dd>Nodes on a grid, thin connectors, one focal node.</dd>
+        <dt>Motion</dt><dd>A dot flows along the connectors (= the data moving).</dd>
+        <dt>Color</dt><dd>Nodes neutral; the key path accent.</dd></dl>
+    </div>
+  </article>
+
+  <!-- 6 -->
+  <article class="arch">
+    <div class="demo">
+      <pre class="code">def answer(q):
+  ctx = <span class="hot">retrieve(q)</span>
+  return llm(ctx, q)
+  # grounded, not guessed</pre>
+    </div>
+    <div class="meta"><span class="n">06</span><h2>Code / Terminal Focus</h2>
+      <p class="when">A concrete, checkable example.</p>
+      <dl><dt>Layout</dt><dd>Mono block, dim chrome, one highlighted line.</dd>
+        <dt>Motion</dt><dd>Focus pull — block dims, the key line brightens.</dd>
+        <dt>Color</dt><dd>Mono on near-bg; accent the proving line.</dd></dl>
+    </div>
+  </article>
+
+  <!-- 7 -->
+  <article class="arch">
+    <div class="demo"><div class="pad" style="gap:1cqw">
+      <p class="num acc">92%</p>
+      <p class="sub">of agent failures are context, not the model</p>
+    </div></div>
+    <div class="meta"><span class="n">07</span><h2>Number Punch</h2>
+      <p class="when">One number is the whole point.</p>
+      <dl><dt>Layout</dt><dd>Giant numeral centered, tiny caption beneath.</dd>
+        <dt>Motion</dt><dd>Count-up to the value (finite) or a hard scale-in snap.</dd>
+        <dt>Color</dt><dd>Ink numeral; accent if it marks the tension.</dd></dl>
+    </div>
+  </article>
+
+  <!-- 8 -->
+  <article class="arch">
+    <div class="demo"><div class="pad" style="gap:3cqw">
+      <blockquote class="q">“Premature optimization is the root of all evil.”</blockquote>
+      <cite class="cite">Donald Knuth · 1974</cite>
+    </div></div>
+    <div class="meta"><span class="n">08</span><h2>Book-Quote Card</h2>
+      <p class="when">The canonical, verified quote.</p>
+      <dl><dt>Layout</dt><dd>Quote hero (serif italic), attribution small beneath.</dd>
+        <dt>Motion</dt><dd>Quote fades up as one block; attribution sets last.</dd>
+        <dt>Color</dt><dd>Ink, no accent — restraint signals authority.</dd></dl>
+    </div>
+  </article>
+
+  <!-- 9 -->
+  <article class="arch">
+    <div class="demo"><div class="pad">
+      <div class="device">the<br>move</div>
+      <p class="lbl" style="margin-top:2cqw">signature device · one per episode</p>
+    </div></div>
+    <div class="meta"><span class="n">09</span><h2>Signature-Device Moment</h2>
+      <p class="when">The beat that embodies the episode's core concept. Exactly one.</p>
+      <dl><dt>Layout</dt><dd>Defined by the device itself — pull from the spec.</dd>
+        <dt>Motion</dt><dd>The peak of the energy arc; room before and after.</dd>
+        <dt>Color</dt><dd>The device's own; no competing hero motion near it.</dd></dl>
+    </div>
+  </article>
+
+  <!-- 10 -->
+  <article class="arch">
+    <div class="demo">
+      <div class="grain"></div>
+      <div class="pad"><div class="mark"></div></div>
+    </div>
+    <div class="meta"><span class="n">10</span><h2>Breather / Transition</h2>
+      <p class="when">Connective tissue — after a peak, before a shift.</p>
+      <dl><dt>Layout</dt><dd>Near-empty — bg, grain, maybe one small mark.</dd>
+        <dt>Motion</dt><dd>Ambient only (slow bloom, drift) or a clean match-cut.</dd>
+        <dt>Color</dt><dd>Bg + texture; no accent.</dd></dl>
+    </div>
+  </article>
+
+</div>
+</body>
+</html>
