@@ -50,6 +50,18 @@ def inline(text: str) -> str:
     return out
 
 
+def mix_white(hexv: str, ratio: float) -> str:
+    """Mix a #RRGGBB color toward white. ratio = amount of the color kept."""
+    try:
+        r = int(hexv[1:3], 16)
+        g = int(hexv[3:5], 16)
+        b = int(hexv[5:7], 16)
+    except (ValueError, IndexError):
+        return hexv
+    mix = lambda c: round(c * ratio + 255 * (1 - ratio))
+    return f"#{mix(r):02X}{mix(g):02X}{mix(b):02X}"
+
+
 def slugify(text: str, seen: set) -> str:
     s = re.sub(r"[^\w\s-]", "", text.lower()).strip()
     s = re.sub(r"[\s_]+", "-", s) or "scene"
@@ -83,25 +95,32 @@ REGION_RE = re.compile(
 )
 
 
+HEADER_TOKEN = re.compile(r"(cols|rows|aspect|bg|ink|accent)\s*:\s*([^·|]+)", re.I)
+
+
 def parse_layout(block_lines):
-    cols, rows, aspect = 12, 8, "16/9"
+    spec = {"cols": 12, "rows": 8, "aspect": "16/9",
+            "bg": "#FBF4E3", "ink": "#1C1A15", "accent": "#0E6B43"}
     regions, unplaced = [], []
     for raw in block_lines:
         line = raw.strip()
         if not line:
             continue
-        h = re.match(
-            r"^cols:\s*(\d+)?.*?(?:rows:\s*(\d+))?.*?(?:aspect:\s*([\d]+\s*/\s*[\d]+))?",
-            line,
-            re.I,
-        )
-        if line.lower().startswith("cols:") and h:
-            if h.group(1):
-                cols = max(1, min(48, int(h.group(1))))
-            if h.group(2):
-                rows = max(1, min(48, int(h.group(2))))
-            if h.group(3):
-                aspect = h.group(3).replace(" ", "")
+        if re.match(r"^(cols|rows|aspect|bg|ink|accent)\s*:", line, re.I):
+            for k, v in HEADER_TOKEN.findall(line):
+                k, v = k.lower(), v.strip()
+                if k in ("cols", "rows"):
+                    digits = re.sub(r"\D", "", v)
+                    if digits:
+                        spec[k] = max(1, min(48, int(digits)))
+                elif k == "aspect":
+                    av = v.replace(" ", "")
+                    if re.match(r"^\d+/\d+$", av):
+                        spec["aspect"] = av
+                elif k in ("bg", "ink", "accent"):
+                    hm = re.match(r"^#?([0-9A-Fa-f]{6})$", v)
+                    if hm:
+                        spec[k] = "#" + hm.group(1)
             continue
         m = REGION_RE.match(line)
         if not m:
@@ -115,6 +134,7 @@ def parse_layout(block_lines):
         if not cm and not rm:
             unplaced.append(line)
             continue
+        cols, rows = spec["cols"], spec["rows"]
         ca = int(cm.group(1)) if cm else 1
         cb = int(cm.group(2)) if (cm and cm.group(2)) else ca
         ra = int(rm.group(1)) if rm else 1
@@ -122,19 +142,13 @@ def parse_layout(block_lines):
         ca, cb = sorted((max(1, min(cols, ca)), max(1, min(cols, cb))))
         ra, rb = sorted((max(1, min(rows, ra)), max(1, min(rows, rb))))
         regions.append(
-            {
-                "kind": kind,
-                "label": label,
-                "ca": ca,
-                "cb": cb,
-                "ra": ra,
-                "rb": rb,
-                "focal": focal,
-                "muted": muted,
-            }
+            {"kind": kind, "label": label, "ca": ca, "cb": cb,
+             "ra": ra, "rb": rb, "focal": focal, "muted": muted}
         )
-    return {"cols": cols, "rows": rows, "aspect": aspect,
-            "regions": regions, "unplaced": unplaced}
+    spec["regions"] = regions
+    spec["unplaced"] = unplaced
+    spec["acc_soft"] = mix_white(spec["accent"], 0.14)
+    return spec
 
 
 def parse_score(line):
@@ -262,38 +276,47 @@ def derives_widget(value, plan_dir, out_dir):
 
 # ---------------------------------------------------------------- render
 
-def render_wireframe(layout):
+def render_frame(layout):
+    """Render the scene as a storyboard frame — real type scale on the brand
+    palette, composed by the grid placement, NOT a debug-grid wireframe."""
     if not layout or (not layout["regions"] and not layout["unplaced"]):
         return '<div class="wf-empty">No layout spec for this scene.</div>'
     cols, rows = layout["cols"], layout["rows"]
+    style_vars = (
+        f'aspect-ratio:{attr(layout["aspect"])};--fr-bg:{layout["bg"]};'
+        f'--fr-ink:{layout["ink"]};--fr-acc:{layout["accent"]};'
+        f'--fr-acc-soft:{layout["acc_soft"]}'
+    )
     cells = []
     for reg in layout["regions"]:
-        cls = f'wf-r wf-{reg["kind"]}'
+        left = (reg["ca"] - 1) / cols * 100
+        width = (reg["cb"] - reg["ca"] + 1) / cols * 100
+        top = (reg["ra"] - 1) / rows * 100
+        height = (reg["rb"] - reg["ra"] + 1) / rows * 100
+        z = 0 if reg["muted"] else (3 if reg["focal"] else 1)
+        cls = f'fr-r fr-{reg["kind"]}'
         if reg["focal"]:
-            cls += " wf-focal"
+            cls += " fr-focal"
         if reg["muted"]:
-            cls += " wf-muted"
-        style = (
-            f'grid-column:{reg["ca"]}/{reg["cb"]+1};'
-            f'grid-row:{reg["ra"]}/{reg["rb"]+1}'
-        )
-        badge = '<i class="wf-foc" title="focal point"></i>' if reg["focal"] else ""
+            cls += " fr-muted"
+        pos = (f"left:{left:.2f}%;top:{top:.2f}%;width:{width:.2f}%;"
+               f"height:{height:.2f}%;z-index:{z}")
+        dot = '<i class="fr-foc" title="focal point"></i>' if reg["focal"] else ""
         cells.append(
-            f'<div class="{cls}" style="{style}">{badge}'
+            f'<div class="{cls}" style="{pos}">{dot}'
             f'<span>{esc(reg["label"])}</span></div>'
         )
-    grid = (
-        f'<div class="wf" style="aspect-ratio:{attr(layout["aspect"])};'
-        f'grid-template-columns:repeat({cols},1fr);'
-        f'grid-template-rows:repeat({rows},1fr)">{"".join(cells)}</div>'
+    frame = (
+        f'<div class="frame" style="{style_vars}">{"".join(cells)}'
+        f'<span class="fr-asp">{esc(layout["aspect"])}</span></div>'
     )
     if layout["unplaced"]:
         items = "".join(f"<li>{esc(u)}</li>" for u in layout["unplaced"])
-        grid += (
+        frame += (
             f'<div class="wf-unplaced"><b>Unplaced</b> — fix placement before '
             f'the gate:<ul>{items}</ul></div>'
         )
-    return grid
+    return frame
 
 
 def render_scorecard(score):
@@ -407,27 +430,38 @@ h1.title{font:600 29px/1.15 var(--serif);letter-spacing:-.01em;margin:0 0 16px;t
 .wf-wrap{margin:0}
 .wf-cap{font:600 9.5px/1.5 var(--sans);letter-spacing:.12em;text-transform:uppercase;
   color:var(--muted);margin:0 0 8px;display:flex;justify-content:space-between}
-.wf{display:grid;gap:3px;width:100%;background:
-  repeating-linear-gradient(0deg,transparent,transparent calc(12.5% - 1px),rgba(28,26,21,.04) 12.5%),
-  repeating-linear-gradient(90deg,transparent,transparent calc(8.33% - 1px),rgba(28,26,21,.04) 8.33%),
-  var(--paper);
-  border:1px solid var(--line2);border-radius:10px;padding:3px}
-.wf-r{position:relative;display:flex;align-items:center;justify-content:center;
-  text-align:center;padding:4px 6px;border:1px solid var(--line2);border-radius:6px;
-  background:#fff;overflow:hidden;min-height:0}
-.wf-r span{font:500 11px/1.25 var(--sans);color:var(--ink);
-  overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:3;
+.frame{position:relative;width:100%;border-radius:12px;overflow:hidden;
+  background:var(--fr-bg);border:1px solid var(--line2);
+  box-shadow:0 1px 0 rgba(255,255,255,.5) inset,0 14px 36px -22px rgba(28,26,21,.55);
+  container-type:inline-size}
+.fr-asp{position:absolute;right:1cqw;bottom:0.8cqw;font:600 1.5cqw/1 var(--mono);
+  color:var(--fr-ink);opacity:.3;letter-spacing:.04em;z-index:5}
+.fr-r{position:absolute;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;text-align:center;padding:0.8cqw 1.4cqw;overflow:hidden}
+.fr-r>span{max-width:100%;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;
   -webkit-box-orient:vertical}
-.wf-hero span{font-weight:700;font-size:13px}
-.wf-pill{border-radius:999px;background:var(--accent-soft);border-color:#CDE3D6}
-.wf-pill span{font-weight:600;font-size:10px;color:var(--accent-ink)}
-.wf-label span{font:600 9px/1.3 var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
-.wf-media{border-style:dashed;background:repeating-linear-gradient(45deg,#fff,#fff 6px,#FAF8F2 6px,#FAF8F2 12px)}
-.wf-media span{color:var(--muted)}
-.wf-muted{opacity:.5}
-.wf-focal{border:2px solid var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
-.wf-foc{position:absolute;top:4px;right:4px;width:7px;height:7px;border-radius:50%;
-  background:var(--accent)}
+.fr-hero>span{font:700 6cqw/1.07 var(--serif);color:var(--fr-ink);letter-spacing:-.01em}
+.fr-text>span{font:500 3cqw/1.3 var(--sans);color:var(--fr-ink)}
+.fr-label>span{font:700 1.85cqw/1.3 var(--sans);letter-spacing:.2em;text-transform:uppercase;
+  color:color-mix(in srgb,var(--fr-ink) 56%,transparent)}
+.fr-box{border:1px dashed color-mix(in srgb,var(--fr-ink) 16%,transparent);border-radius:1.4cqw}
+.fr-box>span{font:600 2cqw/1.25 var(--sans);color:color-mix(in srgb,var(--fr-ink) 44%,transparent)}
+.fr-media{border-radius:1.2cqw;border:1px solid color-mix(in srgb,var(--fr-ink) 13%,transparent);
+  background:repeating-linear-gradient(45deg,
+    color-mix(in srgb,var(--fr-ink) 5%,transparent) 0 7px,transparent 7px 15px)}
+.fr-media>span{font:600 1.7cqw/1.25 var(--sans);letter-spacing:.03em;
+  color:color-mix(in srgb,var(--fr-ink) 46%,transparent)}
+.fr-pill>span{font:600 2.2cqw/1 var(--sans);color:var(--fr-acc);background:var(--fr-acc-soft);
+  border:1px solid color-mix(in srgb,var(--fr-acc) 32%,transparent);border-radius:999px;
+  padding:1.1cqw 2.2cqw;display:inline-block;-webkit-line-clamp:1}
+.fr-muted{opacity:.3}
+.fr-hero.fr-focal>span{text-shadow:0 0.8cqw 2cqw color-mix(in srgb,var(--fr-ink) 16%,transparent)}
+.fr-focal>span::after{content:"";display:block;width:18%;min-width:24px;height:0.5cqw;
+  margin:1.1cqw auto 0;border-radius:999px;background:var(--fr-acc)}
+.fr-pill.fr-focal>span::after,.fr-media.fr-focal>span::after,.fr-box.fr-focal>span::after{display:none}
+.fr-pill.fr-focal>span{box-shadow:0 0 0 0.5cqw var(--fr-acc-soft)}
+.fr-foc{position:absolute;top:1cqw;right:1cqw;width:1.4cqw;height:1.4cqw;border-radius:50%;
+  background:var(--fr-acc);box-shadow:0 0 0 0.5cqw var(--fr-acc-soft);z-index:4}
 .wf-empty,.wf-unplaced{font-size:12px;color:var(--muted);padding:10px 0}
 .wf-unplaced{margin-top:10px;background:var(--danger-soft);border:1px solid #E8CABF;
   border-radius:9px;padding:9px 12px;color:#7a2c1e}
@@ -731,10 +765,9 @@ def build(src_path: Path, out_path: Path, title_override):
             f'<div class="sc-head"><span class="id">{esc(sc["num"])}</span>'
             f'<span class="ttl">{inline(sc["name"])}</span>{span}</div>'
             f'<div class="sc-body">'
-            f'<div class="wf-wrap"><p class="wf-cap"><span>Layout wireframe</span>'
-            f'<span>{esc(sc["layout"]["cols"]) if sc["layout"] else ""}'
-            f'{"×" + str(sc["layout"]["rows"]) if sc["layout"] else ""}</span></p>'
-            f'{render_wireframe(sc["layout"])}</div>'
+            f'<div class="wf-wrap"><p class="wf-cap"><span>Scene frame · storyboard</span>'
+            f'<span>{esc(sc["layout"]["aspect"]) if sc["layout"] else ""}</span></p>'
+            f'{render_frame(sc["layout"])}</div>'
             f'{meta}</div>'
             f'<div class="cwrap" data-sec="{sid}"><p class="clabel">Review comments</p>'
             f'<div class="clist"></div><div class="cform">'
