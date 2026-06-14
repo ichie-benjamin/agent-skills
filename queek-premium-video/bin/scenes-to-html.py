@@ -83,72 +83,30 @@ DIM_NAMES = [
     "Composition",
     "Timing & energy",
 ]
-FIELD_KEYS = ["archetype", "derives", "focal", "motion", "type"]
+FIELD_KEYS = ["archetype", "derives", "focal", "motion", "type", "aspect"]
 HEADER_KEYS = [
     ("signature", r"\*\*Signature(?:\s*device)?:?\*\*"),
     ("arc", r"\*\*Arc:?\*\*"),
     ("concept", r"\*\*Concept:?\*\*"),
+    ("palette", r"\*\*Palette:?\*\*"),
+    ("font", r"\*\*Font:?\*\*"),
 ]
 SCENE_H = re.compile(r"^##\s+(S\d+)\b\s*[·.:-]?\s*(.*?)\s*(\(([^)]*)\))?\s*$")
-REGION_RE = re.compile(
-    r'^(hero|pill|label|text|media|box)\s+"([^"]*)"\s*:\s*(.+?)\s*$', re.I
-)
+
+DEFAULT_PALETTE = {"bg": "#FBF4E3", "ink": "#1C1A15", "accent": "#0E6B43"}
+ASPECT_DIMS = {"16/9": (1280, 720), "9/16": (720, 1280), "1/1": (900, 900),
+               "4/5": (864, 1080), "4/3": (960, 720)}
 
 
-HEADER_TOKEN = re.compile(r"(cols|rows|aspect|bg|ink|accent)\s*:\s*([^·|]+)", re.I)
+def parse_palette(value):
+    pal = dict(DEFAULT_PALETTE)
+    for k, v in re.findall(r"(bg|ink|accent)\s*:?\s*#?([0-9A-Fa-f]{6})", value, re.I):
+        pal[k.lower()] = "#" + v
+    return pal
 
 
-def parse_layout(block_lines):
-    spec = {"cols": 12, "rows": 8, "aspect": "16/9",
-            "bg": "#FBF4E3", "ink": "#1C1A15", "accent": "#0E6B43"}
-    regions, unplaced = [], []
-    for raw in block_lines:
-        line = raw.strip()
-        if not line:
-            continue
-        if re.match(r"^(cols|rows|aspect|bg|ink|accent)\s*:", line, re.I):
-            for k, v in HEADER_TOKEN.findall(line):
-                k, v = k.lower(), v.strip()
-                if k in ("cols", "rows"):
-                    digits = re.sub(r"\D", "", v)
-                    if digits:
-                        spec[k] = max(1, min(48, int(digits)))
-                elif k == "aspect":
-                    av = v.replace(" ", "")
-                    if re.match(r"^\d+/\d+$", av):
-                        spec["aspect"] = av
-                elif k in ("bg", "ink", "accent"):
-                    hm = re.match(r"^#?([0-9A-Fa-f]{6})$", v)
-                    if hm:
-                        spec[k] = "#" + hm.group(1)
-            continue
-        m = REGION_RE.match(line)
-        if not m:
-            unplaced.append(line)
-            continue
-        kind, label, place = m.group(1).lower(), m.group(2), m.group(3)
-        focal = bool(re.search(r"\bfocal\b", place, re.I))
-        muted = bool(re.search(r"\bmuted\b", place, re.I))
-        cm = re.search(r"c(\d+)(?:\s*-\s*(\d+))?", place, re.I)
-        rm = re.search(r"r(\d+)(?:\s*-\s*(\d+))?", place, re.I)
-        if not cm and not rm:
-            unplaced.append(line)
-            continue
-        cols, rows = spec["cols"], spec["rows"]
-        ca = int(cm.group(1)) if cm else 1
-        cb = int(cm.group(2)) if (cm and cm.group(2)) else ca
-        ra = int(rm.group(1)) if rm else 1
-        rb = int(rm.group(2)) if (rm and rm.group(2)) else ra
-        ca, cb = sorted((max(1, min(cols, ca)), max(1, min(cols, cb))))
-        ra, rb = sorted((max(1, min(rows, ra)), max(1, min(rows, rb))))
-        regions.append(
-            {"kind": kind, "label": label, "ca": ca, "cb": cb,
-             "ra": ra, "rb": rb, "focal": focal, "muted": muted}
-        )
-    spec["regions"] = regions
-    spec["unplaced"] = unplaced
-    spec["acc_soft"] = mix_white(spec["accent"], 0.14)
-    return spec
+def aspect_dims(aspect):
+    return ASPECT_DIMS.get(aspect, ASPECT_DIMS["16/9"])
 
 
 def parse_score(line):
@@ -174,7 +132,7 @@ def parse_scenes(text: str):
     def flush_fence():
         nonlocal fence_buf, fence_owner
         if fence_buf is not None and fence_owner is not None:
-            fence_owner["layout"] = parse_layout(fence_buf)
+            fence_owner["html"] = "\n".join(fence_buf)
         fence_buf, fence_owner = None, None
 
     for raw in lines:
@@ -185,11 +143,8 @@ def parse_scenes(text: str):
                 flush_fence()
             else:
                 in_fence = True
-                # a layout fence belongs to the open scene
-                if "layout" in s.lower() or current is not None:
-                    fence_buf, fence_owner = [], current
-                else:
-                    fence_buf, fence_owner = [], None
+                # the scene's HTML layout block belongs to the open scene
+                fence_buf, fence_owner = ([], current) if current is not None else (None, None)
             continue
         if in_fence:
             if fence_buf is not None:
@@ -208,7 +163,7 @@ def parse_scenes(text: str):
                 "name": (m.group(2) or "").strip(),
                 "span": (m.group(4) or "").strip(),
                 "fields": {},
-                "layout": None,
+                "html": "",
                 "score": None,
             }
             scenes.append(current)
@@ -276,47 +231,52 @@ def derives_widget(value, plan_dir, out_dir):
 
 # ---------------------------------------------------------------- render
 
-def render_frame(layout):
-    """Render the scene as a storyboard frame — real type scale on the brand
-    palette, composed by the grid placement, NOT a debug-grid wireframe."""
-    if not layout or (not layout["regions"] and not layout["unplaced"]):
-        return '<div class="wf-empty">No layout spec for this scene.</div>'
-    cols, rows = layout["cols"], layout["rows"]
-    style_vars = (
-        f'aspect-ratio:{attr(layout["aspect"])};--fr-bg:{layout["bg"]};'
-        f'--fr-ink:{layout["ink"]};--fr-acc:{layout["accent"]};'
-        f'--fr-acc-soft:{layout["acc_soft"]}'
+STAGE_BASE = """*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{width:%(w)spx;height:%(h)spx;overflow:hidden;position:relative;
+  background:var(--bg);color:var(--ink);
+  font-family:%(font)s;-webkit-font-smoothing:antialiased;
+  --bg:%(bg)s;--ink:%(ink)s;--accent:%(accent)s;
+  --accent-soft:color-mix(in srgb,var(--accent) 14%%,#fff);
+  --muted:color-mix(in srgb,var(--ink) 55%%,transparent)}
+.stagepad{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:6%% 7%%}
+/* optional helpers — author scenes with these or roll your own */
+.t-hero{font-family:%(serif)s;font-weight:700;font-size:104px;line-height:1.06;
+  letter-spacing:-.01em;margin:0}
+.t-sub{font-size:40px;line-height:1.25;margin:0}
+.t-label{font-size:22px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--muted);margin:0}
+.chip{display:inline-block;font-size:26px;font-weight:600;color:var(--accent);
+  background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 32%%,transparent);
+  border-radius:999px;padding:12px 26px}
+.card{background:#fff;border-radius:22px;padding:44px 52px;
+  box-shadow:0 30px 70px -36px rgba(28,26,21,.45)}
+.accent{color:var(--accent)}
+.stack{display:flex;flex-direction:column;gap:22px;align-items:center}
+"""
+
+
+def render_stage(scene_html, palette, aspect, font_sans, font_serif):
+    """Render the scene's real static HTML inside an isolated, scaled iframe —
+    a true preview that is also the exact markup Make builds from."""
+    if not scene_html.strip():
+        return '<div class="wf-empty">No HTML layout for this scene yet.</div>'
+    w, h = aspect_dims(aspect)
+    base = STAGE_BASE % {
+        "w": w, "h": h, "bg": palette["bg"], "ink": palette["ink"],
+        "accent": palette["accent"], "font": font_sans, "serif": font_serif,
+    }
+    doc = (
+        f"<!doctype html><html><head><meta charset='utf-8'>"
+        f"<style>{base}</style></head><body>{scene_html}</body></html>"
     )
-    cells = []
-    for reg in layout["regions"]:
-        left = (reg["ca"] - 1) / cols * 100
-        width = (reg["cb"] - reg["ca"] + 1) / cols * 100
-        top = (reg["ra"] - 1) / rows * 100
-        height = (reg["rb"] - reg["ra"] + 1) / rows * 100
-        z = 0 if reg["muted"] else (3 if reg["focal"] else 1)
-        cls = f'fr-r fr-{reg["kind"]}'
-        if reg["focal"]:
-            cls += " fr-focal"
-        if reg["muted"]:
-            cls += " fr-muted"
-        pos = (f"left:{left:.2f}%;top:{top:.2f}%;width:{width:.2f}%;"
-               f"height:{height:.2f}%;z-index:{z}")
-        dot = '<i class="fr-foc" title="focal point"></i>' if reg["focal"] else ""
-        cells.append(
-            f'<div class="{cls}" style="{pos}">{dot}'
-            f'<span>{esc(reg["label"])}</span></div>'
-        )
-    frame = (
-        f'<div class="frame" style="{style_vars}">{"".join(cells)}'
-        f'<span class="fr-asp">{esc(layout["aspect"])}</span></div>'
+    return (
+        f'<div class="stage" style="aspect-ratio:{attr(aspect)}">'
+        f'<iframe loading="lazy" data-w="{w}" data-h="{h}" '
+        f'sandbox="allow-same-origin" title="scene preview" '
+        f'srcdoc="{attr(doc)}"></iframe></div>'
     )
-    if layout["unplaced"]:
-        items = "".join(f"<li>{esc(u)}</li>" for u in layout["unplaced"])
-        frame += (
-            f'<div class="wf-unplaced"><b>Unplaced</b> — fix placement before '
-            f'the gate:<ul>{items}</ul></div>'
-        )
-    return frame
 
 
 def render_scorecard(score):
@@ -430,39 +390,16 @@ h1.title{font:600 29px/1.15 var(--serif);letter-spacing:-.01em;margin:0 0 16px;t
 .wf-wrap{margin:0}
 .wf-cap{font:600 9.5px/1.5 var(--sans);letter-spacing:.12em;text-transform:uppercase;
   color:var(--muted);margin:0 0 8px;display:flex;justify-content:space-between}
-.frame{position:relative;width:100%;border-radius:12px;overflow:hidden;
-  background:var(--fr-bg);border:1px solid var(--line2);
-  box-shadow:0 1px 0 rgba(255,255,255,.5) inset,0 14px 36px -22px rgba(28,26,21,.55);
-  container-type:inline-size}
-.fr-asp{position:absolute;right:1cqw;bottom:0.8cqw;font:600 1.5cqw/1 var(--mono);
-  color:var(--fr-ink);opacity:.3;letter-spacing:.04em;z-index:5}
-.fr-r{position:absolute;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;text-align:center;padding:0.8cqw 1.4cqw;overflow:hidden}
-.fr-r>span{max-width:100%;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;
-  -webkit-box-orient:vertical}
-.fr-hero>span{font:700 6cqw/1.07 var(--serif);color:var(--fr-ink);letter-spacing:-.01em}
-.fr-text>span{font:500 3cqw/1.3 var(--sans);color:var(--fr-ink)}
-.fr-label>span{font:700 1.85cqw/1.3 var(--sans);letter-spacing:.2em;text-transform:uppercase;
-  color:color-mix(in srgb,var(--fr-ink) 56%,transparent)}
-.fr-box{border:1px dashed color-mix(in srgb,var(--fr-ink) 16%,transparent);border-radius:1.4cqw}
-.fr-box>span{font:600 2cqw/1.25 var(--sans);color:color-mix(in srgb,var(--fr-ink) 44%,transparent)}
-.fr-media{border-radius:1.2cqw;border:1px solid color-mix(in srgb,var(--fr-ink) 13%,transparent);
-  background:repeating-linear-gradient(45deg,
-    color-mix(in srgb,var(--fr-ink) 5%,transparent) 0 7px,transparent 7px 15px)}
-.fr-media>span{font:600 1.7cqw/1.25 var(--sans);letter-spacing:.03em;
-  color:color-mix(in srgb,var(--fr-ink) 46%,transparent)}
-.fr-pill>span{font:600 2.2cqw/1 var(--sans);color:var(--fr-acc);background:var(--fr-acc-soft);
-  border:1px solid color-mix(in srgb,var(--fr-acc) 32%,transparent);border-radius:999px;
-  padding:1.1cqw 2.2cqw;display:inline-block;-webkit-line-clamp:1}
-.fr-muted{opacity:.3}
-.fr-hero.fr-focal>span{text-shadow:0 0.8cqw 2cqw color-mix(in srgb,var(--fr-ink) 16%,transparent)}
-.fr-focal>span::after{content:"";display:block;width:18%;min-width:24px;height:0.5cqw;
-  margin:1.1cqw auto 0;border-radius:999px;background:var(--fr-acc)}
-.fr-pill.fr-focal>span::after,.fr-media.fr-focal>span::after,.fr-box.fr-focal>span::after{display:none}
-.fr-pill.fr-focal>span{box-shadow:0 0 0 0.5cqw var(--fr-acc-soft)}
-.fr-foc{position:absolute;top:1cqw;right:1cqw;width:1.4cqw;height:1.4cqw;border-radius:50%;
-  background:var(--fr-acc);box-shadow:0 0 0 0.5cqw var(--fr-acc-soft);z-index:4}
-.wf-empty,.wf-unplaced{font-size:12px;color:var(--muted);padding:10px 0}
+.wf-copy{font:600 10px/1 var(--sans);letter-spacing:.04em;padding:6px 10px;
+  border:1px solid var(--line2);border-radius:7px;background:var(--surface);
+  color:var(--muted);cursor:pointer}
+.wf-copy:hover{color:var(--accent-ink);border-color:var(--accent)}
+.stage{position:relative;width:100%;border-radius:12px;overflow:hidden;
+  border:1px solid var(--line2);background:var(--paper);
+  box-shadow:0 1px 0 rgba(255,255,255,.5) inset,0 14px 36px -22px rgba(28,26,21,.55)}
+.stage iframe{position:absolute;top:0;left:0;border:0;transform-origin:top left;
+  background:#fff}
+.wf-empty{font-size:12px;color:var(--muted);padding:24px 0;text-align:center}
 .wf-unplaced{margin-top:10px;background:var(--danger-soft);border:1px solid #E8CABF;
   border-radius:9px;padding:9px 12px;color:#7a2c1e}
 .wf-unplaced b{color:var(--danger)}
@@ -679,6 +616,25 @@ JS = r"""
     var b=new Blob([exportMd()],{type:'text/markdown'});var a=document.createElement('a');
     a.href=URL.createObjectURL(b);a.download='scenes-review.md';a.click();
     setTimeout(function(){URL.revokeObjectURL(a.href);},500);});
+  // scale each scene iframe to its column width (keeps the 1280px design crisp)
+  function scaleStages(){
+    document.querySelectorAll('.stage').forEach(function(w){
+      var f=w.querySelector('iframe');if(!f)return;
+      var dw=+f.getAttribute('data-w'),dh=+f.getAttribute('data-h');
+      var s=w.clientWidth/dw;
+      f.style.width=dw+'px';f.style.height=dh+'px';f.style.transform='scale('+s+')';
+      w.style.height=(dh*s)+'px';});
+  }
+  window.addEventListener('resize',scaleStages);
+  window.addEventListener('load',scaleStages);
+  scaleStages();
+
+  // copy a scene's build-ready HTML
+  document.addEventListener('click',function(e){
+    var btn=e.target.closest('.wf-copy');if(!btn)return;
+    var src=btn.closest('.wf-wrap').querySelector('.wf-src');
+    if(src)copyText(src.value,'Scene HTML copied');});
+
   render();
   document.body.setAttribute('data-jsready','1');
 })();
@@ -725,6 +681,11 @@ def build(src_path: Path, out_path: Path, title_override):
     out_dir = out_path.resolve().parent
     ids: set = set()
 
+    palette = parse_palette(header.get("palette", ""))
+    font_sans = (header.get("font") or
+                 "Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif")
+    font_serif = "'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif"
+
     toc, cards = [], []
     n_premium = 0
     for sc in scenes:
@@ -759,19 +720,27 @@ def build(src_path: Path, out_path: Path, title_override):
             f'<h4 style="margin-top:18px">Scorecard</h4>{render_scorecard(sc["score"])}</div>'
         )
 
+        aspect = f.get("aspect", "16/9")
+        if not re.match(r"^\d+/\d+$", aspect):
+            aspect = "16/9"
         span = f' <span class="span">{esc(sc["span"])}</span>' if sc["span"] else ""
+        copybtn = (
+            '<button class="wf-copy" type="button">Copy HTML</button>'
+            if sc["html"].strip() else ""
+        )
         cards.append(
             f'<section class="scene" id="{sid}" data-name="{attr(label)}">'
             f'<div class="sc-head"><span class="id">{esc(sc["num"])}</span>'
             f'<span class="ttl">{inline(sc["name"])}</span>{span}</div>'
             f'<div class="sc-body">'
-            f'<div class="wf-wrap"><p class="wf-cap"><span>Scene frame · storyboard</span>'
-            f'<span>{esc(sc["layout"]["aspect"]) if sc["layout"] else ""}</span></p>'
-            f'{render_frame(sc["layout"])}</div>'
+            f'<div class="wf-wrap"><p class="wf-cap"><span>Scene layout · {esc(aspect)}'
+            f' · build-ready HTML</span>{copybtn}</p>'
+            f'{render_stage(sc["html"], palette, aspect, font_sans, font_serif)}'
+            f'<textarea class="wf-src" readonly hidden>{esc(sc["html"])}</textarea></div>'
             f'{meta}</div>'
             f'<div class="cwrap" data-sec="{sid}"><p class="clabel">Review comments</p>'
             f'<div class="clist"></div><div class="cform">'
-            f'<textarea placeholder="Comment on this scene… (or select any text / the layout to quote it)"></textarea>'
+            f'<textarea placeholder="Comment on this scene… (or select any text to quote it)"></textarea>'
             f'<div class="row"><button type="button">Add comment</button></div></div></div>'
             f"</section>"
         )

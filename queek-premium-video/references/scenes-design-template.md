@@ -1,66 +1,71 @@
 # Scene design layer → `works/<slug>/scenes-design.md`
 
 Written at **Flow step 4 (Scene design)**, AFTER the Plan gate, BEFORE Make.
-It is the *visual realization* of the approved plan — how each beat looks and
-moves — not a restatement of the plan's contract. Plan stays the source of
-truth for timing / VO / scene intent; this layer adds archetype + layout +
-motion + a 6-dim score per scene. `bin/scenes-to-html.py` renders it as
-`SCENES.html` for the design gate.
-
-Author one scene block per approved plan §6 scene. Read the scene's plan block
-+ `memories/brand.md` + the project scene library + bundled archetypes first;
-pick an archetype, never invent the layout cold. The layout is a **wireframe
-spec, not built HTML** — boxes on a grid, cheap to redraw when the reviewer
-corrects it.
+Each scene's layout is authored as **real static HTML** — the literal frame —
+so `SCENES.html` previews exactly what the build starts from, and Make lifts
+the markup and adds motion. The HTML is the *static layout* (HF's "Layout
+Before Animation" step): no GSAP, no HF wiring, no real data — just the
+composed frame. Read the plan §6 block + `memories/brand.md` + the scene
+library first; derive from an archetype, never invent cold.
 
 ```markdown
 # Scene design — <film title>
 
 **Signature device:** <the film's one device>
 **Arc:** <peak Sx · quiet Sy · resolve Sz>
+**Palette:** bg #FBF4E3 · ink #1C1A15 · accent #0E6B43
+**Font:** Inter, sans-serif        (optional; defaults to Inter)
 
 ## S1 · <name> (<start>–<end>s)
-- Archetype:  <name from scene library / bundled archetypes — e.g. "Term/Definition Card">
-- Derives:    <screenshot path · archetype:<name> · ref:<brand>-<slug>#S2 — what this layout is built from>
+- Archetype:  <name from scene library / bundled archetypes>
+- Derives:    <screenshot path · archetype:<name> · ref:<brand>-<slug>#S2>
 - Focal:      <the one thing the eye lands on first>
-- Motion:     <the one meaningful move + its primitive — e.g. "stamp-settle on card">
-- Type:       <hero face/size · support · label>
+- Motion:     <the one meaningful move + primitive — added at Make, described here>
+- Aspect:     16/9        (optional per scene: 16/9 · 9/16 · 1/1 · 4/5 · 4/3)
 
-​```layout
-cols: 12 · rows: 8 · aspect: 16/9
-hero "Ankara shirt ₦18,500" : c2-11 r3-5 focal
-pill "WRONG ITEM" : c2-5 r6
-label "ORDER #2841" : c2-6 r2
+​```html
+<div class="stagepad">
+  <div class="card stack" style="align-items:flex-start;text-align:left">
+    <p class="t-label">Order #2841</p>
+    <h1 class="t-hero">Ankara shirt <span class="accent">₦18,500</span></h1>
+    <span class="chip">⚠ Wrong item</span>
+  </div>
+</div>
 ​```
 
 Score: 1:2 2:2 3:2 4:1 5:2 6:2
-Fix 4: hero ₦ amount should be 120px not 96 to clear the support line
+Fix 4: hero amount competes with the item name; push ₦18,500 to its own line
 
 ## S2 · <name> (<start>–<end>s)
 ...
 ```
 
-## Layout grammar (inside the `layout` fence)
+## The HTML block (one per scene)
 
-- **Header line (optional):** `cols: <n> · rows: <n> · aspect: <w/h>`. Defaults
-  `cols 12 · rows 8 · aspect 16/9`. Use `aspect: 9/16` for a mobile-frame scene.
-- **Region line:** `<kind> "<label>" : <placement> [focal] [muted]`
-  - `kind` — `hero` (big label) · `pill` (rounded chip) · `label` (small caps) ·
-    `text` (body) · `media` (dashed, for a screenshot/clip region) · `box` (plain).
-  - `placement` — `c<a>-<b> r<a>-<b>` (1-indexed, inclusive spans). Single cell:
-    `c3 r2`. Column-only or row-only spans the other axis fully.
-  - `focal` — accent outline; mark exactly one per scene (the eye's first stop).
-  - `muted` — dimmed (de-emphasised / background element).
-- A region with no parseable placement is listed below the wireframe as
-  **unplaced** rather than dropped — fix the placement before the gate.
+Self-contained static markup for a `<frame>` at the scene's resolution
+(16/9 → 1280×720, 9/16 → 720×1280, etc.). The generator wraps it in an
+isolated iframe with the palette tokens + a small helper stylesheet already
+injected, so author only the scene's elements. The reviewer sees the real
+frame; **the builder copies it verbatim** (the "Copy HTML" button) into the HF
+composition and animates it — so keep it clean, real, and on-brand.
+
+**Tokens available** (CSS variables, from `Palette:`): `--bg` · `--ink` ·
+`--accent` · `--accent-soft` · `--muted`.
+
+**Helper classes** (use them or roll your own):
+`.stagepad` (full-frame centered padding) · `.stack` (vertical, gap) ·
+`.t-hero` (serif display) · `.t-sub` · `.t-label` (tracked small-caps) ·
+`.chip` (accent pill) · `.card` (white elevated panel) · `.accent` (accent text).
+
+Rules: real brand content (real ₦, `brand.md` names), no lorem; static only
+(no `<script>`, no animation — that's Make); derive the composition from the
+scene's `Derives:` source, don't invent UI cold.
 
 ## Score line
 
-`Score: <dim>:<0|1|2> …` for all six scene-design dimensions, in order:
-
+`Score: <dim>:<0|1|2> …` for the six scene-design dimensions in order:
 1 focal idea · 2 motion meaning · 3 color discipline · 4 type hierarchy ·
-5 composition & breath · 6 timing & energy fit.
-
-The generator computes total + verdict (premium = **no zeros AND ≥ 10/12**);
-don't hand-type a badge. Add `Fix <n>: <what to change>` lines for any dim < 2 —
-they render under the scorecard and are what the builder fixes at Make.
+5 composition & breath · 6 timing & energy fit. The generator computes
+total + verdict (premium = no zeros AND ≥ 10/12). Add `Fix <n>: <change>`
+lines for any dim < 2 — they render under the scorecard and the builder fixes
+them at Make.

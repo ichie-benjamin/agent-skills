@@ -96,7 +96,7 @@ Seven steps. Human approvals at Plan and each Make gate. Direction is internal.
    **Signature device:** <name>
    **Arc:** <beat → beat → beat>
    ``` Source assets per `references/asset-sourcing.md`. Self-grade against Validator B. Rewrite until pass. Then render the review page — `python3 "$SKILL_DIR/bin/plan-to-html.py" works/<slug>/plan.md` → `works/<slug>/plan.html` — and submit BOTH (the md is the contract; the html is the review surface: creative-bet hero, clickable scene timeline, accordion sections, per-section comments with select-to-quote, APPROVE/REVISE verdict, "Copy review" markdown export the human pastes back). Media paths cited in the plan render live: audio files (SFX, beds) as inline players, images and clips as click-to-preview chips — so every **G**-status asset is auditioned by the reviewer at the Plan gate, while D/R assets show as pending chips until Make sources them. On any plan edit, regenerate the html in the same commit — it must always render the md that's actually submitted.
-4. **Scene design (SECOND HUMAN GATE)** — Realize the approved plan's look before any HTML exists. Per approved scene, run the `scene-design` skill (`recommend`): pick an archetype (never invent cold), lay out a wireframe, name the one meaningful motion, self-score on its 6-dim rubric. Write `works/<slug>/scenes-design.md` per `references/scenes-design-template.md`, then render `python3 "$SKILL_DIR/bin/scenes-to-html.py" works/<slug>/scenes-design.md` → `works/<slug>/SCENES.html` and submit it as a durable gate. The reviewer approves *composition + hierarchy + motion intent* from cheap wireframes — correcting here costs seconds, not a rebuilt scene. See §Scene design.
+4. **Scene design (SECOND HUMAN GATE)** — Build out the approved plan's look as **real static HTML** before motion. Per approved scene, run the `scene-design` skill (`recommend`): pick an archetype (never invent cold), author the scene's static layout HTML on brand tokens, name the one meaningful motion, self-score on its 6-dim rubric. Write `works/<slug>/scenes-design.md` per `references/scenes-design-template.md`, then render `python3 "$SKILL_DIR/bin/scenes-to-html.py" works/<slug>/scenes-design.md` → `works/<slug>/SCENES.html` and submit it as a durable gate. The reviewer sees each scene's real rendered frame; Make lifts the same HTML and adds motion — so approval here is "build from this." See §Scene design.
 5. **Make** — Audio · Video · Mobile, with three gates (below). Video builds against the approved `scenes-design.md` (the look) + `plan.md` (the contract).
 6. **Render** — Wire stems, render both masters.
 7. **Review** — Three axes: technical · brand · story · reference diff. Fail routes to the phase that owns the gap.
@@ -376,19 +376,19 @@ Missing any of the four fields invalidates the waiver.
 
 ## Scene design (Flow step 4 — the Design gate)
 
-Sits between an approved Plan and Make. The Plan locked *what each beat is and when* (timing, VO, scene intent, assets); this stage locks *how each beat looks and moves* — **before any composition HTML exists**, so the reviewer corrects composition from a cheap wireframe instead of a built scene. It pairs with the post-build scene-critic at two non-overlapping altitudes: **Design gate = composition + hierarchy + motion intent (pre-build, a still proves it); scene-critic = motion + premium feel (post-build, a still can't).**
+Sits between an approved Plan and Make. The Plan locked *what each beat is and when* (timing, VO, scene intent, assets); this stage locks *how each beat looks* by building the **static layout HTML** for every scene — the literal frame, minus motion. This is HF's "Layout Before Animation" step pulled forward into a review gate: the reviewer approves the real frame, and Make continues from that exact markup (lift via "Copy HTML") by adding motion + wiring audio. It pairs with the post-build scene-critic at two non-overlapping altitudes: **Design gate = composition + hierarchy (pre-motion, the real static frame); scene-critic = motion + premium feel (post-build, a still can't prove it).**
 
 **Process (per approved scene):**
 
 1. Invoke the `scene-design` skill in `recommend` mode with the scene's plan §6 block + its role in the energy arc + the signature device. It reads the scene library (below) + bundled archetypes and returns an archetype, layout, the one meaningful motion, type tiers, timing, and a 6-dimension self-score.
-2. Write the scene into `works/<slug>/scenes-design.md` per `references/scenes-design-template.md`: archetype · derives-from · focal · motion · type · a **wireframe layout spec** (boxes on a grid, NOT built HTML) · the score line + any `Fix N:` notes for dims under 2.
+2. Write the scene into `works/<slug>/scenes-design.md` per `references/scenes-design-template.md`: archetype · derives-from · focal · motion · the scene's **static layout HTML** (one ` ```html ` block, on brand tokens + helper classes, no script/animation) · the score line + any `Fix N:` notes for dims under 2.
 3. **Never invent the layout cold** — every scene derives from a library archetype, a real screenshot, or a prior film's scene (the `Derives:` field). This is the same anchor rule that kills the F5 "invented-UI" failure mode, applied at design time.
 
-**Render + gate:** `python3 "$SKILL_DIR/bin/scenes-to-html.py" works/<slug>/scenes-design.md` → `works/<slug>/SCENES.html`. Submit it as a durable gate (the `[!] AWAITING Design gate` line per §Gate protocol). The page shows each scene's wireframe, archetype, scorecard + fixes, the reference it derives from (screenshots click to preview), and a comment thread with APPROVE/REVISE + "Copy review" export the reviewer pastes back. Regenerate the html on any edit — it must always render the md submitted.
+**Render + gate:** `python3 "$SKILL_DIR/bin/scenes-to-html.py" works/<slug>/scenes-design.md` → `works/<slug>/SCENES.html`. Submit it as a durable gate (the `[!] AWAITING Design gate` line per §Gate protocol). The page renders each scene's real HTML frame in an isolated scaled iframe, with a **Copy HTML** button (the builder's starting markup), the archetype, scorecard + fixes, the reference it derives from (screenshots click to preview), and a comment thread with APPROVE/REVISE + "Copy review" export. Regenerate the html on any edit — it must always render the md submitted.
 
 **Advisory scoring, hard gate:** `scene-design` itself only scores and recommends (it never blocks); the *human approval* is the gate, owned here. A scene scoring below premium (zeros, or < 10/12) isn't auto-blocked — it's surfaced with its fixes for the reviewer to weigh.
 
-**Depth scales by type** (per §Section requirements matrix): full wireframe + score per scene for Launch / Industry / Feature; lighter (archetype + focal + score, wireframe optional) for Customer / Reel; **skipped for Brand sting** (one scene, no composition decision to gate).
+**Depth scales by type** (per §Section requirements matrix): full layout HTML + score per scene for Launch / Industry / Feature; lighter (archetype + focal + score, HTML optional) for Customer / Reel; **skipped for Brand sting** (one scene, no composition decision to gate).
 
 **Scene library (per-dir, grows like film references).** Two layers, mirroring the L0–L3 component model:
 - **Bundled archetypes** — `scene-design`'s own `references/archetypes.md`, the universal starter catalog. Ships with the skill; never project-specific.
@@ -398,7 +398,7 @@ Make's Video phase (§2 below) builds against the approved `scenes-design.md` as
 
 ## Make phase
 
-Plan locks the contract; Make builds against it. Make doesn't re-pick durations, rewrite VO, choose colors, invent UI, or change story beats. If Make hits a decision that isn't in Plan, route back to Plan with the gap. The approved `scenes-design.md` is the per-scene look spec — Make realizes the approved wireframe + motion, it doesn't re-design.
+Plan locks the contract; Make builds against it. Make doesn't re-pick durations, rewrite VO, choose colors, invent UI, or change story beats. If Make hits a decision that isn't in Plan, route back to Plan with the gap. The approved `scenes-design.md` is the per-scene look spec — Make lifts each scene's approved static HTML and adds motion, it doesn't re-design.
 
 | Plan delivers | Make builds |
 |---|---|
