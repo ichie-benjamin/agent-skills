@@ -88,14 +88,14 @@ memories/<topic>.md                           updated if new insight
 Seven steps. Human approvals at Plan and each Make gate. Direction is internal.
 
 1. **Intake** — Load `memories/brand.md` (run §Brand setup first if it's missing) + asset libraries + REFERENCES + voice-options (each FLAGs per pre-flight if absent). Run pre-flight (below). Pick type. Ask for missing brief fields — and any §Brand setup gaps — in one consolidated message; never infer. When the brief is complete: `mkdir works/<slug>/`, write `brief.md`, initialise `TASK.md` with phase skeleton. The project exists from this moment so any session cut can resume.
-2. **Direction (INTERNAL — no human gate)** — Write `works/<slug>/direction.md` (creative commitment: signature device · look · sound · references). Self-grade against Validator A. Rewrite until pass. Then proceed DIRECTLY to Plan in the same spawn — do NOT submit a gate, do NOT pause for human review. Direction is your creative scratch; the human reviews it inside Plan via the 4-line creative-bet header.
+2. **Direction (INTERNAL — no human gate)** — Write `works/<slug>/direction.md` (creative commitment: signature device · look · sound · references). Validate against Validator A via a **fresh-context validator subagent** (§Gate philosophy — never self-grade), rewrite until it passes. Then proceed DIRECTLY to Plan in the same spawn — do NOT submit a gate, do NOT pause for human review. Direction is your creative scratch; the human reviews it inside Plan via the 4-line creative-bet header.
 3. **Plan (FIRST HUMAN GATE)** — Write `works/<slug>/plan.md` (per-scene contract). MUST open with a 4-line creative-bet header, one field per line, so reviewer can decide in 5 seconds:
    ```
    **Concept:** <one sentence>
    **Audio path:** <A/B + reason if non-default>
    **Signature device:** <name>
    **Arc:** <beat → beat → beat>
-   ``` Source assets per `references/asset-sourcing.md`. Self-grade against Validator B. Rewrite until pass. Then render the review page — `python3 "$SKILL_DIR/bin/plan-to-html.py" works/<slug>/plan.md` → `works/<slug>/plan.html` — and submit BOTH (the md is the contract; the html is the review surface: creative-bet hero, clickable scene timeline, accordion sections, per-section comments with select-to-quote, APPROVE/REVISE verdict, "Copy review" markdown export the human pastes back). Media paths cited in the plan render live: audio files (SFX, beds) as inline players, images and clips as click-to-preview chips — so every **G**-status asset is auditioned by the reviewer at the Plan gate, while D/R assets show as pending chips until Make sources them. On any plan edit, regenerate the html in the same commit — it must always render the md that's actually submitted.
+   ``` Source assets per `references/asset-sourcing.md`. Validate against Validator B via a **fresh-context validator subagent** (§Gate philosophy — never self-grade); rewrite until it passes. Then render the review page — `python3 "$SKILL_DIR/bin/plan-to-html.py" works/<slug>/plan.md` → `works/<slug>/plan.html` — and submit BOTH (the md is the contract; the html is the review surface: creative-bet hero, clickable scene timeline, accordion sections, per-section comments with select-to-quote, APPROVE/REVISE verdict, "Copy review" markdown export the human pastes back). Media paths cited in the plan render live: audio files (SFX, beds) as inline players, images and clips as click-to-preview chips — so every **G**-status asset is auditioned by the reviewer at the Plan gate, while D/R assets show as pending chips until Make sources them. On any plan edit, regenerate the html in the same commit — it must always render the md that's actually submitted.
 4. **Scene design (SECOND HUMAN GATE)** — Build out the approved plan's look as **real static HTML** before motion. Per approved scene, run the `scene-design` skill (`recommend`): pick an archetype (never invent cold), author the scene's static layout HTML on brand tokens, name the one meaningful motion, self-score on its 6-dim rubric. Write `works/<slug>/scenes-design.md` per `references/scenes-design-template.md`, then render `python3 "$SKILL_DIR/bin/scenes-to-html.py" works/<slug>/scenes-design.md` → `works/<slug>/SCENES.html` and submit it as a durable gate. The reviewer sees each scene's real rendered frame; Make lifts the same HTML and adds motion — so approval here is "build from this." See §Scene design.
 5. **Make** — Audio · Video · Mobile, with three gates (below). Video builds against the approved `scenes-design.md` (the look) + `plan.md` (the contract).
 6. **Render** — Wire stems, render both masters.
@@ -170,9 +170,14 @@ Face-cam mode: a flag on Launch / Industry / Customer when the human supplies fa
 
 ## Validators
 
-Binary checklists. Type-aware via the matrix. Score as `<passed>/<applicable>` with fails listed (or `none`). Rewrite until pass before submitting to human.
+Binary checklists. Type-aware via the matrix. Score as `<passed>/<applicable>` with fails listed (or `none`). Scored by a **fresh-context validator subagent**, not the author (§Gate philosophy). Rewrite until that independent score passes before submitting to human.
 
 The validator exists because films review badly when a structural piece is missing. Catching it before the human review is cheaper than catching it after.
+
+### Gate philosophy (applies to EVERY gate in this skill)
+
+1. **A gate fights weak and poor work — it never caps creativity.** Creativity is limitless: a gate may not reject a scene for being unconventional, bold, or unlike a reference. It rejects only what is *broken, lazy, off-brand, or below the premium floor* (un-renderable motion, missing entrance, flat web-scale type, invented UI, fabricated facts, banned filler). Floor, not ceiling. If a check would block a strong-but-unusual choice, the check is wrong — fix the check, not the scene.
+2. **Every verdict comes from an independent check — never the author's self-attestation.** The agent that wrote the artifact may not be the one that passes it. Independence is either (a) **objective tool output** (lint · inspect · validate · animation-map — facts, not opinion), or (b) a **fresh-context validator subagent** (`Agent`, `subagent_type: general-purpose`) that sees only the artifact + the checklist, never the author's reasoning or its plea to be lenient. Self-grading is banned at every gate (the builder is primed to declare "done" — see the vo-grade lesson). The author rewrites until the *independent* verdict passes.
 
 ### A · Direction
 
@@ -244,7 +249,7 @@ The validator exists because films review badly when a structural piece is missi
 17. Risk + fallback (skip Sting; opt Reel).
 18. Director's note.
 
-**HF safety**
+**HF safety** (declared here as design intent — *independently verified* on the built scene by the Make §2 Structural gate, which is the real blocker; a ticked box here is a plan, not a pass)
 19. HF safety contract block all checked. See `references/plan-template.md` §5.
 
 **Audio** — path-aware (Path A and Path B are peer-gated; Brand sting uses §7-sting only)
@@ -604,9 +609,13 @@ Per scene:
 
 #### Per-scene quality gate (HARD — WIP=1 + fresh critic)
 
-The agent may not start scene N+1 until scene N passes this gate. Two checks, in order:
+The agent may not start scene N+1 until scene N passes this gate. Two independent checks (§Gate philosophy), in order — the first objective, the second a fresh agent:
 
-1. **HF gate suite** (mechanical — *is it broken?*): lint · inspect · validate · animation-map. Three failed snapshots on the same scene means the reference doesn't match the Plan's intent, or the technique doesn't seek — stop iterating motion, inline the scene, swap the technique, or route back to Plan.
+1. **Structural gate** (mechanical — *is it sound + render-safe?*): runs `lint · inspect · validate · animation-map` on the **built scene** and BINDS their output to the §5 HF-safety guarantees as a hard blocker — not a review note, not a plan checkbox. This is where the plan's self-declared structural intent (Validator B items 10-13/19) gets *independently verified* on the actual scene. Hard-FAIL if any of:
+   - `animation-map` shows a tracked element with **no entrance** (static/`offscreen` when it should animate), an **exit on a non-final scene**, a **`collision`**, or an unintended **`paced-fast`/`paced-slow`**;
+   - `lint` flags seek-unsafe code (`tl.call`/`onUpdate`/bare `gsap.set` outside the timeline, `Math.random`/`Date.now`, `repeat:-1`, animating `visibility`/`display`/media `.play()`), or a `google_fonts_import`;
+   - `inspect`/`validate` shows hero-element overflow or a real (critic-confirmed) legibility break.
+   This gate judges *soundness, never style* — it never fails a scene for a bold or unusual choice, only for broken/un-renderable motion. FAIL → fix the specific structural defect, re-render, re-run; it is not dispatched to the critic until structurally clean. (Three failed snapshots on the same scene = the technique doesn't seek; inline the sub-comp, swap the technique, or route back to Plan.)
 2. **Scene critic** (premium — *is it good?*): a **fresh-context critic subagent** scores the scene against the reference it was built from, on the observable rubric in `references/scene-critic-rubric.md`. **Judge a frame SEQUENCE across the scene window (entrance→settle), not one still** — premium lives in the motion, and a single frozen frame can't show whether it animated well or just popped in. Snapshot the canonical 5-frame sequence (entry · +25% · mid · +75% · settle) in one HF command (HF overwrites the dir per run). **Re-snapshot on any missing frame; never let the critic judge a substitute frame** (a verdict about the wrong frame is invalid). Self-grading is banned — the builder is primed to declare "done" (see the vo-grade lesson). Invoke `Agent` (`subagent_type: general-purpose`), fresh each scene, with the prompt template in the rubric. The critic returns `PASS | FAIL + fails list`.
 
 Loop: **FAIL → apply the critic's fixes → re-render → re-critic, max 3 rounds.** Still FAIL after 3 → escalate to the human with the gap list (not a pass; the scene stays open). PASS → log the verdict to the TASK.md *Scene critic log* (format in the rubric) → advance.

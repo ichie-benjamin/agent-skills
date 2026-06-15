@@ -11,7 +11,9 @@ metadata:
 
 A lightweight judge + recommender for **premium video scene design**. One scene = one idea. The skill decides (or scores) *how a beat should look and move* before any HTML exists. It produces a compact **design spec**, hands the build to the `hyperframes` family, and never renders anything itself.
 
-**It is advisory.** It always returns a score and a fix-list; it never blocks. The human approves.
+**It is advisory.** It always returns a score and a fix-list; it never blocks. The human approves. The *hard* per-scene gates (structural soundness, render-safety, premium-motion) live in `queek-premium-video` — this skill supplies the starting vocabulary and a recommendation, it does not gate.
+
+**The layout samples are a starter palette, never a cap on concept.** `references/scene-layouts.html` is a visual library of proven scene layouts (talking-head placements, splits, number/quote/illustration frames, b-roll). Use them to skip the blank page — but creativity is limitless: a beat that needs a layout not in the library is welcome, not a deviation. The samples seed ideas; they never bound them.
 
 ## Token discipline (read this first)
 

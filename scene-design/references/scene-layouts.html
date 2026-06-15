@@ -3,229 +3,283 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Scene layout reference · archetypes</title>
+<title>Premium video scene layouts</title>
 <style>
   :root{
-    --bg:#FBF4E3; --ink:#1C1A15; --muted:#6F6A5E; --line:#E3DCC9;
-    --accent:#0E6B43; --accent-soft:#E7F0EA; --card:#FFFDF8;
-    --serif:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;
+    --page:#EEEBE4; --ink:#17150F; --muted:#8A857A; --line:#171510;
+    --soft:#E4DFD3; --panel:#FBF9F4; --device:#FFFFFF;
+    --matte:#EFE9DC; --accent:#2F6E4F; --warm:#CB6038; --ink2:#2A2740;
+    --vid1:#3A4049; --vid2:#1E2127; --face:rgba(255,255,255,.16);
+    --broll1:#5A5043; --broll2:#34291F;
     --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,sans-serif;
+    --serif:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;
     --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.6 var(--sans);
-    -webkit-font-smoothing:antialiased}
-  header{max-width:1180px;margin:0 auto;padding:48px 32px 8px}
-  header .ey{font:600 11px/1 var(--sans);letter-spacing:.22em;text-transform:uppercase;
-    color:var(--accent);margin:0 0 12px}
-  header h1{font:600 32px/1.15 var(--serif);margin:0 0 8px}
-  header p{color:var(--muted);max-width:60ch;margin:0}
-  .grid{max-width:1180px;margin:0 auto;padding:28px 32px 80px;
-    display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:22px}
-  .arch{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;
-    box-shadow:0 1px 2px rgba(28,26,21,.04),0 16px 40px -32px rgba(28,26,21,.4)}
-  .demo{position:relative;aspect-ratio:16/9;background:var(--bg);
-    border-bottom:1px solid var(--line);container-type:inline-size;overflow:hidden}
-  .meta{padding:14px 16px 16px}
-  .meta .n{font:600 10px/1 var(--mono);color:var(--accent);background:var(--accent-soft);
-    border-radius:6px;padding:5px 7px;margin-right:8px}
-  .meta h2{display:inline;font:600 16px/1.3 var(--sans);letter-spacing:-.01em}
-  .meta .when{color:var(--muted);margin:9px 0 11px;font-size:13px}
-  .meta dl{margin:0;display:grid;grid-template-columns:64px 1fr;gap:5px 10px;font-size:12.5px}
-  .meta dt{font:600 9px/1.6 var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
-  .meta dd{margin:0}
-  /* shared demo primitives (sized in container-query units to scale with the card) */
-  .pad{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
-    justify-content:center;text-align:center;padding:7cqw 9cqw;gap:2.4cqw}
+  body{margin:0;background:var(--page);color:var(--ink);font:14px/1.55 var(--sans);-webkit-font-smoothing:antialiased}
+  header{max-width:1320px;margin:0 auto;padding:44px 32px 0}
+  .ey{font:600 11px/1 var(--sans);letter-spacing:.22em;text-transform:uppercase;color:var(--accent);margin:0 0 10px}
+  h1{font:600 30px/1.1 var(--serif);margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 22px;max-width:64ch}
+  .tabs{display:inline-flex;gap:4px;background:var(--soft);border-radius:999px;padding:4px}
+  .tabs button{border:0;background:none;cursor:pointer;font:600 13px/1 var(--sans);padding:10px 20px;border-radius:999px;color:var(--muted)}
+  .tabs button.on{background:var(--ink);color:#F4F1E8}
+  .panel{display:none;max-width:1320px;margin:0 auto;padding:26px 32px 100px}
+  .panel.on{display:block}
+  .grid{display:grid;gap:26px}
+  .gd{grid-template-columns:repeat(auto-fill,minmax(372px,1fr))}
+  .gm{grid-template-columns:repeat(auto-fill,minmax(228px,1fr))}
+  .scene .cap{margin-top:11px;display:flex;align-items:flex-start;gap:10px}
+  .scene .cap .body{flex:1}
+  .scene .cap .n{font:600 10px/1 var(--mono);color:var(--accent);background:#E7F0EA;border-radius:6px;padding:5px 7px;margin-right:8px}
+  .scene .cap h3{display:inline;font:600 15px/1.3 var(--sans);letter-spacing:-.01em}
+  .scene .cap .use{color:var(--muted);margin:7px 0 0;font-size:12.5px}
+  .scene .cap .use b{color:var(--ink);font-weight:600}
+  .copy{border:1px solid var(--line);background:var(--device);color:var(--muted);cursor:pointer;
+    font:600 10px/1 var(--sans);letter-spacing:.03em;padding:7px 9px;border-radius:7px;white-space:nowrap;margin-top:1px}
+  .copy:hover{color:var(--accent);border-color:var(--accent)}
+
+  /* ---- the device (the video frame) ---- */
+  .device{position:relative;width:100%;border:1px solid var(--line);background:var(--device);
+    overflow:hidden;border-radius:3px;container-type:inline-size}
+  .d16{aspect-ratio:16/9}
+  .d9{aspect-ratio:9/16}
+  .fill{position:absolute;inset:0}
+
+  /* ---- components ---- */
+  .th{background:linear-gradient(155deg,var(--vid1),var(--vid2));overflow:hidden}
+  .th .face{position:absolute;left:50%;bottom:-2%;transform:translateX(-50%);width:42%;height:74%}
+  .th .face::before{content:"";position:absolute;left:50%;top:0;transform:translateX(-50%);width:46%;aspect-ratio:1;border-radius:50%;background:var(--face)}
+  .th .face::after{content:"";position:absolute;left:50%;bottom:0;transform:translateX(-50%);width:100%;height:54%;border-radius:46% 46% 0 0;background:var(--face)}
+  .tag{position:absolute;top:8px;left:8px;font:600 8px/1 var(--sans);letter-spacing:.16em;text-transform:uppercase;
+    color:rgba(255,255,255,.55);background:rgba(0,0,0,.28);border-radius:5px;padding:4px 6px;z-index:3}
+  .broll{background:linear-gradient(150deg,var(--broll1),var(--broll2));overflow:hidden}
+  .broll::after{content:"";position:absolute;inset:0;background:
+    radial-gradient(circle at 32% 36%,rgba(255,255,255,.1),transparent 42%),
+    radial-gradient(circle at 72% 70%,rgba(0,0,0,.22),transparent 50%)}
+  .txt{background:var(--panel);padding:9% 10%;display:flex;flex-direction:column;justify-content:center;gap:8%}
+  .txt .h{font:700 clamp(13px,3.4cqw,26px)/1.1 var(--serif);letter-spacing:-.01em}
+  .txt .l{height:5.5%;min-height:5px;border-radius:3px;background:#DAD4C6}
+  .txt .l.s{width:62%}
   .acc{color:var(--accent)}
-  .lbl{font:700 2.6cqw/1.3 var(--sans);letter-spacing:.24em;text-transform:uppercase;color:var(--muted);margin:0}
-  .hero{font:700 8cqw/1.05 var(--serif);letter-spacing:-.01em;margin:0}
-  .sub{font:500 3.6cqw/1.3 var(--sans);color:var(--muted);margin:0}
-  .seam{position:absolute;top:0;bottom:0;left:50%;width:1px;background:var(--line)}
-  .col{position:absolute;top:0;bottom:0;width:50%;display:flex;flex-direction:column;
-    align-items:center;justify-content:center;gap:1.6cqw}
-  .chip{display:inline-block;font:600 2.6cqw/1 var(--sans);padding:1.6cqw 3cqw;border-radius:999px;
-    background:var(--accent-soft);color:var(--accent);border:1px solid #CDE3D6}
-  .row{display:flex;align-items:baseline;gap:2.4cqw;width:100%}
-  .row .ix{font:700 3.2cqw/1 var(--mono);color:var(--muted)}
-  .row .tx{font:600 3.4cqw/1.2 var(--sans)}
-  .node{position:absolute;width:13cqw;height:13cqw;border-radius:14%;background:#fff;
-    border:1px solid var(--line);display:flex;align-items:center;justify-content:center;
-    font:700 2.4cqw/1 var(--sans);color:var(--muted);box-shadow:0 4cqw 8cqw -5cqw rgba(28,26,21,.3)}
-  .link{position:absolute;height:1px;background:var(--line)}
-  .flowdot{position:absolute;width:2.2cqw;height:2.2cqw;border-radius:50%;background:var(--accent)}
-  pre.code{position:absolute;inset:9cqw 10cqw;margin:0;background:#23211B;border-radius:2cqw;
-    padding:3.4cqw 4cqw;font:2.5cqw/1.7 var(--mono);color:#8C887C;overflow:hidden}
-  pre.code .hot{color:#EDEAE0;background:rgba(14,107,67,.4);border-radius:1cqw;padding:0 1cqw}
-  .num{font:700 22cqw/.9 var(--serif);letter-spacing:-.02em;margin:0}
-  blockquote.q{font:italic 500 5cqw/1.3 var(--serif);margin:0;max-width:80cqw}
-  cite.cite{font:600 2.6cqw/1.4 var(--sans);color:var(--muted);font-style:normal}
-  .device{width:18cqw;height:18cqw;border-radius:50%;border:1.5cqw solid var(--accent);
-    box-shadow:0 0 0 2.4cqw var(--accent-soft);display:flex;align-items:center;justify-content:center;
-    font:700 4cqw/1 var(--sans);color:var(--accent)}
-  .mark{width:3cqw;height:3cqw;border-radius:50%;background:var(--muted);opacity:.4}
-  .grain{position:absolute;inset:0;opacity:.5;
-    background:radial-gradient(circle at 30% 40%,rgba(28,26,21,.05),transparent 40%),
-    radial-gradient(circle at 70% 65%,rgba(28,26,21,.04),transparent 45%)}
+  .obj{background:var(--panel);display:flex;align-items:center;justify-content:center}
+  .obj .shape{width:46%;aspect-ratio:1;border:1px solid var(--line);border-radius:18%;
+    background:repeating-linear-gradient(45deg,#EBE6D9 0 8px,transparent 8px 16px)}
+  .lbl{font:700 clamp(7px,1.7cqw,11px)/1.2 var(--sans);letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+  .pad{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:3cqw;padding:8cqw}
+  .hero{font:700 8cqw/1.04 var(--serif);letter-spacing:-.01em;margin:0}
+  .row{position:absolute;inset:0;display:flex}
+  .uicard{background:#fff;border:1px solid var(--line);border-radius:2.4cqw;box-shadow:0 6cqw 14cqw -7cqw rgba(0,0,0,.4);overflow:hidden}
+  .uirow{display:flex;align-items:center;gap:2cqw;padding:2.2cqw 3cqw;border-bottom:1px solid #EDE8DB;font:2.4cqw/1 var(--sans)}
+  .dot{width:2.4cqw;height:2.4cqw;border-radius:50%;background:#E0DAcc;flex:none}
+  .bubble{max-width:74%;padding:2.4cqw 3cqw;border-radius:3cqw;font:2.7cqw/1.25 var(--sans)}
+
+  #toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:var(--accent);color:#F4F1E8;
+    font:600 12px/1 var(--sans);padding:11px 16px;border-radius:9px;opacity:0;pointer-events:none;transition:.25s}
+  #toast.on{opacity:1}
+  @media(max-width:520px){.gd{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <header>
-  <p class="ey">Scene design · reference</p>
-  <h1>Scene layout archetypes</h1>
-  <p>The ten reusable scene layouts. Don't invent cold — pick the one that fits the beat, then adapt its treatment. Each demo shows how the layout sits in frame; the build adds the motion.</p>
+  <p class="ey">Premium video · scene layouts</p>
+  <h1>Scene layout library</h1>
+  <p class="sub">Each scene is a device frame (1px border) of nested component slots — talking head, b-roll, text, objects. Pick by the beat, then Copy to start the build from its structure.</p>
+  <div class="tabs">
+    <button class="on" data-tab="desktop">Desktop · 16:9</button>
+    <button data-tab="mobile">Mobile · 9:16</button>
+  </div>
 </header>
 
-<div class="grid">
+<!-- ===================== DESKTOP ===================== -->
+<section class="panel on" id="desktop">
+  <div class="grid gd">
 
-  <!-- 1 -->
-  <article class="arch">
-    <div class="demo"><div class="pad">
-      <p class="hero">Most AI fails<br><span class="acc">fluently</span>.</p>
-    </div></div>
-    <div class="meta"><span class="n">01</span><h2>Hero Statement</h2>
-      <p class="when">A single sentence carries the whole beat — openings, turns, the closing punch.</p>
-      <dl><dt>Layout</dt><dd>Centered, big negative space above.</dd>
-        <dt>Motion</dt><dd>Per-word reveal, breath-hold on the hero word.</dd>
-        <dt>Color</dt><dd>Ink on bg; one accent on the pivot word only.</dd></dl>
-    </div>
-  </article>
+    <div class="scene"><div class="device d16">
+      <div class="th fill"><span class="tag">Talking head</span><div class="face"></div></div>
+    </div><div class="cap"><div class="body"><span class="n">01</span><h3>Full-screen talking head</h3>
+      <p class="use"><b>Use:</b> hook, direct address, high-trust moments.</p></div><button class="copy">Copy</button></div></div>
 
-  <!-- 2 -->
-  <article class="arch">
-    <div class="demo"><div class="pad">
-      <p class="lbl">Term</p>
-      <p class="hero" style="font-size:9cqw">Context window</p>
-      <p class="sub">what the model can see at once</p>
-    </div></div>
-    <div class="meta"><span class="n">02</span><h2>Term / Definition Card</h2>
-      <p class="when">A term must land before the argument uses it.</p>
-      <dl><dt>Layout</dt><dd>Label above · term hero (serif) · definition beneath.</dd>
-        <dt>Motion</dt><dd>Term sets first, definition fades up after a beat.</dd>
-        <dt>Color</dt><dd>Neutral; accent only if the term IS the concept.</dd></dl>
-    </div>
-  </article>
+    <div class="scene"><div class="device d16" style="background:var(--matte)">
+      <div class="th" style="position:absolute;inset:7% 6%;border-radius:14px"><span class="tag">Talking head</span><div class="face"></div></div>
+    </div><div class="cap"><div class="body"><span class="n">02</span><h3>Padded · rounded</h3>
+      <p class="use"><b>Use:</b> a calmer, more premium register than full-bleed.</p></div><button class="copy">Copy</button></div></div>
 
-  <!-- 3 -->
-  <article class="arch">
-    <div class="demo">
-      <div class="seam"></div>
-      <div class="col" style="left:0"><p class="lbl">Vibe coder</p><p class="hero" style="font-size:6cqw;color:var(--muted)">guesses</p></div>
-      <div class="col" style="right:0"><p class="lbl acc">Engineer</p><p class="hero acc" style="font-size:6cqw">verifies</p></div>
-    </div>
-    <div class="meta"><span class="n">03</span><h2>Contrast Split</h2>
-      <p class="when">A comparison or tension between two things.</p>
-      <dl><dt>Layout</dt><dd>Split with a seam; each side labeled.</dd>
-        <dt>Motion</dt><dd>Sides enter from opposite edges, meet at the seam.</dd>
-        <dt>Color</dt><dd>One side neutral, the other the tension accent.</dd></dl>
-    </div>
-  </article>
+    <div class="scene"><div class="device d16" style="background:var(--matte)">
+      <div class="th" style="position:absolute;inset:9% 8%;border-radius:14px"><span class="tag">Talking head</span><div class="face"></div></div>
+      <div style="position:absolute;left:4.5%;top:5%;width:16%;height:34%;border-left:3px solid var(--warm);border-top:3px solid var(--warm);border-radius:14px 0 0 0"></div>
+      <div style="position:absolute;right:4.5%;bottom:5%;width:16%;height:34%;border-right:3px solid var(--warm);border-bottom:3px solid var(--warm);border-radius:0 0 14px 0"></div>
+    </div><div class="cap"><div class="body"><span class="n">03</span><h3>Broken colored border</h3>
+      <p class="use"><b>Use:</b> editorial accent on a key beat; signature framing.</p></div><button class="copy">Copy</button></div></div>
 
-  <!-- 4 -->
-  <article class="arch">
-    <div class="demo"><div class="pad" style="align-items:stretch;justify-content:center;gap:2cqw;padding:9cqw 12cqw">
-      <div class="row"><span class="ix">1</span><span class="tx">Plan before acting</span></div>
-      <div class="row"><span class="ix acc">2</span><span class="tx acc">Retrieve the right context</span></div>
-      <div class="row"><span class="ix">3</span><span class="tx">Verify the output</span></div>
-    </div></div>
-    <div class="meta"><span class="n">04</span><h2>Enumerated Reveal</h2>
-      <p class="when">A short list (3–5) where the count itself matters.</p>
-      <dl><dt>Layout</dt><dd>Left-aligned list on a baseline grid, index numerals.</dd>
-        <dt>Motion</dt><dd>Items reveal one-by-one in rhythm with narration.</dd>
-        <dt>Color</dt><dd>Neutral list; accent the one emphasized item.</dd></dl>
-    </div>
-  </article>
+    <div class="scene"><div class="device d16"><div class="row">
+      <div class="txt" style="flex:1.1"><span class="lbl">Point 01</span><div class="h">Agents need a <span class="acc">harness</span></div><div class="l"></div><div class="l s"></div></div>
+      <div class="th" style="flex:.9;position:relative"><span class="tag">Talking head</span><div class="face"></div></div>
+    </div></div><div class="cap"><div class="body"><span class="n">04</span><h3>Talking head right · content left</h3>
+      <p class="use"><b>Use:</b> explaining a point while staying on camera.</p></div><button class="copy">Copy</button></div></div>
 
-  <!-- 5 -->
-  <article class="arch">
-    <div class="demo">
-      <div class="link" style="left:24cqw;right:50cqw;top:50%"></div>
-      <div class="link" style="left:50cqw;right:24cqw;top:50%"></div>
-      <div class="node" style="left:18cqw;top:41%">in</div>
-      <div class="node acc" style="left:43.5cqw;top:41%;border-color:var(--accent);color:var(--accent)">core</div>
-      <div class="node" style="right:18cqw;top:41%">out</div>
-      <div class="flowdot" style="left:38cqw;top:calc(50% - 1.1cqw)"></div>
-    </div>
-    <div class="meta"><span class="n">05</span><h2>System Diagram</h2>
-      <p class="when">How parts connect or data moves — pipeline, loop, architecture.</p>
-      <dl><dt>Layout</dt><dd>Nodes on a grid, thin connectors, one focal node.</dd>
-        <dt>Motion</dt><dd>A dot flows along the connectors (= the data moving).</dd>
-        <dt>Color</dt><dd>Nodes neutral; the key path accent.</dd></dl>
-    </div>
-  </article>
+    <div class="scene"><div class="device d16"><div class="pad" style="gap:4cqw">
+      <div class="obj" style="width:34%;aspect-ratio:1;background:none"><div class="shape" style="width:100%"></div></div>
+      <div class="hero" style="font-size:6cqw">How retrieval <span class="acc">works</span></div><span class="lbl">Illustration · no face</span>
+    </div></div><div class="cap"><div class="body"><span class="n">05</span><h3>Illustration</h3>
+      <p class="use"><b>Use:</b> a built graphic carries the idea; speaker rests.</p></div><button class="copy">Copy</button></div></div>
 
-  <!-- 6 -->
-  <article class="arch">
-    <div class="demo">
-      <pre class="code">def answer(q):
-  ctx = <span class="hot">retrieve(q)</span>
-  return llm(ctx, q)
-  # grounded, not guessed</pre>
-    </div>
-    <div class="meta"><span class="n">06</span><h2>Code / Terminal Focus</h2>
-      <p class="when">A concrete, checkable example.</p>
-      <dl><dt>Layout</dt><dd>Mono block, dim chrome, one highlighted line.</dd>
-        <dt>Motion</dt><dd>Focus pull — block dims, the key line brightens.</dd>
-        <dt>Color</dt><dd>Mono on near-bg; accent the proving line.</dd></dl>
-    </div>
-  </article>
+    <div class="scene"><div class="device d16">
+      <div class="txt fill" style="padding:8% 9%;justify-content:flex-start"><div class="h" style="max-width:70%">The model isn't the product.</div><div class="l" style="width:50%"></div></div>
+      <div class="th" style="position:absolute;left:5%;bottom:7%;width:26%;height:42%;border-radius:12px"><span class="tag">Talking head</span><div class="face"></div></div>
+    </div><div class="cap"><div class="body"><span class="n">06</span><h3>Talking head bottom-left</h3>
+      <p class="use"><b>Use:</b> content owns the frame, speaker stays present.</p></div><button class="copy">Copy</button></div></div>
 
-  <!-- 7 -->
-  <article class="arch">
-    <div class="demo"><div class="pad" style="gap:1cqw">
-      <p class="num acc">92%</p>
-      <p class="sub">of agent failures are context, not the model</p>
-    </div></div>
-    <div class="meta"><span class="n">07</span><h2>Number Punch</h2>
-      <p class="when">One number is the whole point.</p>
-      <dl><dt>Layout</dt><dd>Giant numeral centered, tiny caption beneath.</dd>
-        <dt>Motion</dt><dd>Count-up to the value (finite) or a hard scale-in snap.</dd>
-        <dt>Color</dt><dd>Ink numeral; accent if it marks the tension.</dd></dl>
-    </div>
-  </article>
+    <div class="scene"><div class="device d16">
+      <div class="th fill"><span class="tag">Talking head</span><div class="face"></div></div>
+      <div style="position:absolute;left:6%;right:6%;bottom:7%;background:rgba(20,18,14,.78);border-radius:12px;padding:3.4cqw 4cqw;color:#F4F1E8"><div style="font:700 4cqw/1.15 var(--sans)">This is the <span style="color:#7FD0A4">whole</span> playbook.</div></div>
+    </div><div class="cap"><div class="body"><span class="n">07</span><h3>Full head + lower-third caption</h3>
+      <p class="use"><b>Use:</b> kinetic captions over a speaking face.</p></div><button class="copy">Copy</button></div></div>
 
-  <!-- 8 -->
-  <article class="arch">
-    <div class="demo"><div class="pad" style="gap:3cqw">
-      <blockquote class="q">“Premature optimization is the root of all evil.”</blockquote>
-      <cite class="cite">Donald Knuth · 1974</cite>
-    </div></div>
-    <div class="meta"><span class="n">08</span><h2>Book-Quote Card</h2>
-      <p class="when">The canonical, verified quote.</p>
-      <dl><dt>Layout</dt><dd>Quote hero (serif italic), attribution small beneath.</dd>
-        <dt>Motion</dt><dd>Quote fades up as one block; attribution sets last.</dd>
-        <dt>Color</dt><dd>Ink, no accent — restraint signals authority.</dd></dl>
-    </div>
-  </article>
+    <div class="scene"><div class="device d16">
+      <div class="pad" style="align-items:flex-start;text-align:left;justify-content:center;padding:7cqw 8cqw"><span class="lbl">Hook</span><div class="hero" style="font-size:9cqw;max-width:78%">10 min/day <span class="acc">&rarr;</span> a shipped SaaS</div></div>
+      <div class="th" style="position:absolute;right:5%;top:8%;width:24%;height:40%;border-radius:12px"><span class="tag">Talking head</span><div class="face"></div></div>
+    </div><div class="cap"><div class="body"><span class="n">08</span><h3>Hero text · PiP top-right</h3>
+      <p class="use"><b>Use:</b> a big claim leads, speaker corners in.</p></div><button class="copy">Copy</button></div></div>
 
-  <!-- 9 -->
-  <article class="arch">
-    <div class="demo"><div class="pad">
-      <div class="device">the<br>move</div>
-      <p class="lbl" style="margin-top:2cqw">signature device · one per episode</p>
-    </div></div>
-    <div class="meta"><span class="n">09</span><h2>Signature-Device Moment</h2>
-      <p class="when">The beat that embodies the episode's core concept. Exactly one.</p>
-      <dl><dt>Layout</dt><dd>Defined by the device itself — pull from the spec.</dd>
-        <dt>Motion</dt><dd>The peak of the energy arc; room before and after.</dd>
-        <dt>Color</dt><dd>The device's own; no competing hero motion near it.</dd></dl>
-    </div>
-  </article>
+    <div class="scene"><div class="device d16"><div class="row">
+      <div class="th" style="flex:1;position:relative"><span class="tag">Talking head</span><div class="face"></div></div>
+      <div style="flex:1;background:#23211B;color:#8C887C;font:2.5cqw/1.7 var(--mono);padding:5cqw 4.5cqw"><div>def answer(q):</div><div>&nbsp;&nbsp;ctx = <span style="color:#7FD0A4;background:rgba(47,110,79,.35);border-radius:3px;padding:0 4px">retrieve(q)</span></div><div>&nbsp;&nbsp;return llm(ctx, q)</div></div>
+    </div></div><div class="cap"><div class="body"><span class="n">09</span><h3>Talking head + code panel</h3>
+      <p class="use"><b>Use:</b> a concrete, checkable example beside the speaker.</p></div><button class="copy">Copy</button></div></div>
 
-  <!-- 10 -->
-  <article class="arch">
-    <div class="demo">
-      <div class="grain"></div>
-      <div class="pad"><div class="mark"></div></div>
-    </div>
-    <div class="meta"><span class="n">10</span><h2>Breather / Transition</h2>
-      <p class="when">Connective tissue — after a peak, before a shift.</p>
-      <dl><dt>Layout</dt><dd>Near-empty — bg, grain, maybe one small mark.</dd>
-        <dt>Motion</dt><dd>Ambient only (slow bloom, drift) or a clean match-cut.</dd>
-        <dt>Color</dt><dd>Bg + texture; no accent.</dd></dl>
-    </div>
-  </article>
+    <div class="scene"><div class="device d16" style="background:#16140F">
+      <div class="pad"><div class="hero" style="font-size:24cqw;color:#7FD0A4">92%</div><div class="lbl" style="color:rgba(255,255,255,.5)">context, not the model</div></div>
+    </div><div class="cap"><div class="body"><span class="n">10</span><h3>Number punch · dark</h3>
+      <p class="use"><b>Use:</b> one statistic is the whole beat.</p></div><button class="copy">Copy</button></div></div>
 
-</div>
+    <div class="scene"><div class="device d16">
+      <div style="position:absolute;inset:0;clip-path:polygon(0 0,58% 0,42% 100%,0 100%)"><div class="th fill"><span class="tag">Talking head</span><div class="face"></div></div></div>
+      <div class="txt" style="position:absolute;inset:0;left:50%;justify-content:center;background:var(--panel)"><span class="lbl">Versus</span><div class="h">Demo<br><span class="acc">vs system</span></div></div>
+    </div><div class="cap"><div class="body"><span class="n">11</span><h3>Diagonal split</h3>
+      <p class="use"><b>Use:</b> a comparison or tension between two things.</p></div><button class="copy">Copy</button></div></div>
+
+    <div class="scene"><div class="device d16" style="background:var(--matte)"><div class="row" style="inset:7% 6%;gap:3%">
+      <div class="th" style="flex:1;position:relative;border-radius:12px"><span class="tag">Head</span><div class="face"></div></div>
+      <div class="broll" style="flex:1;position:relative;border-radius:12px"><span class="tag">B-roll</span></div>
+    </div></div><div class="cap"><div class="body"><span class="n">12</span><h3>Two-up · head + b-roll</h3>
+      <p class="use"><b>Use:</b> show-and-tell — speaker plus the thing.</p></div><button class="copy">Copy</button></div></div>
+
+    <div class="scene"><div class="device d16">
+      <div class="broll fill"><span class="tag">B-roll</span></div>
+      <div style="position:absolute;left:7%;bottom:9%;background:rgba(20,18,14,.8);border-radius:10px;padding:3cqw 4cqw;color:#F4F1E8;font:700 4.4cqw/1.1 var(--sans)">Built in <span style="color:#7FD0A4">a weekend</span>.</div>
+    </div><div class="cap"><div class="body"><span class="n">13</span><h3>Full b-roll + caption</h3>
+      <p class="use"><b>Use:</b> footage carries it; text names the beat. No face.</p></div><button class="copy">Copy</button></div></div>
+
+    <div class="scene"><div class="device d16" style="background:var(--accent)">
+      <div class="pad" style="align-items:flex-start;text-align:left;color:#F4F1E8"><div class="hero" style="font-size:18cqw;color:rgba(255,255,255,.4)">01</div><div class="hero" style="font-size:7cqw;color:#fff">Download one app</div></div>
+    </div><div class="cap"><div class="body"><span class="n">14</span><h3>Section title card</h3>
+      <p class="use"><b>Use:</b> numbered divider between steps; hard structural beat.</p></div><button class="copy">Copy</button></div></div>
+
+    <div class="scene"><div class="device d16"><div class="pad" style="gap:3cqw">
+      <div class="h" style="font:italic 500 6cqw/1.3 var(--serif);max-width:84%">&ldquo;Premature optimization is the root of all evil.&rdquo;</div><span class="lbl">Donald Knuth &middot; 1974</span>
+    </div></div><div class="cap"><div class="body"><span class="n">15</span><h3>Quote card</h3>
+      <p class="use"><b>Use:</b> a canonical, verified quote. Restraint = authority.</p></div><button class="copy">Copy</button></div></div>
+
+    <div class="scene"><div class="device d16"><div class="pad" style="display:grid;grid-template-columns:repeat(3,1fr);gap:3cqw;align-content:center;padding:9cqw">
+      <div class="obj" style="aspect-ratio:1"><div class="shape" style="width:54%"></div></div>
+      <div class="obj" style="aspect-ratio:1;border:1px solid var(--accent)"><div class="shape" style="width:54%;border-color:var(--accent)"></div></div>
+      <div class="obj" style="aspect-ratio:1"><div class="shape" style="width:54%"></div></div>
+      <div class="obj" style="aspect-ratio:1"><div class="shape" style="width:54%"></div></div>
+      <div class="obj" style="aspect-ratio:1"><div class="shape" style="width:54%"></div></div>
+      <div class="obj" style="aspect-ratio:1"><div class="shape" style="width:54%"></div></div>
+    </div></div><div class="cap"><div class="body"><span class="n">16</span><h3>Object grid · ecosystem</h3>
+      <p class="use"><b>Use:</b> logos/tools choreographed in; "the ecosystem" beat.</p></div><button class="copy">Copy</button></div></div>
+
+    <div class="scene"><div class="device d16" style="background:#14130F">
+      <div class="pad"><div class="uicard" style="width:62%;transform:perspective(800px) rotateY(-14deg) rotateX(4deg)">
+        <div class="uirow"><span class="dot"></span><span style="color:#8A857A">Dashboard</span></div>
+        <div class="uirow"><span class="dot" style="background:#2F6E4F"></span>12,450 visits</div>
+        <div class="uirow"><span class="dot"></span>Revenue &#9650;</div></div>
+        <span class="lbl" style="color:rgba(255,255,255,.45);margin-top:3cqw">Product reveal</span></div>
+    </div><div class="cap"><div class="body"><span class="n">17</span><h3>Product reveal · 3D tilt</h3>
+      <p class="use"><b>Use:</b> the energy PEAK — the built thing, tilted, on a dark stage.</p></div><button class="copy">Copy</button></div></div>
+
+    <div class="scene"><div class="device d16">
+      <div class="th fill"><span class="tag">Talking head</span><div class="face"></div></div>
+      <div style="position:absolute;right:7%;top:50%;transform:translateY(-50%);background:#fff;border-radius:14px;padding:3cqw 4cqw;box-shadow:0 8cqw 18cqw -8cqw rgba(0,0,0,.5);text-align:center"><div class="hero acc" style="font-size:11cqw">3&times;</div><div class="lbl">faster</div></div>
+    </div><div class="cap"><div class="body"><span class="n">18</span><h3>Stat card over face</h3>
+      <p class="use"><b>Use:</b> a figure pops over the speaker mid-sentence.</p></div><button class="copy">Copy</button></div></div>
+
+    <div class="scene"><div class="device d16"><div class="pad" style="align-items:stretch;justify-content:center;gap:2.4cqw;padding:9cqw 14cqw">
+      <div style="display:flex;align-items:baseline;gap:2.4cqw"><span style="font:700 3.4cqw/1 var(--mono);color:var(--muted)">1</span><span style="font:600 3.6cqw/1.2 var(--sans)">Plan before acting</span></div>
+      <div style="display:flex;align-items:baseline;gap:2.4cqw"><span style="font:700 3.4cqw/1 var(--mono);color:var(--accent)">2</span><span style="font:600 3.6cqw/1.2 var(--sans);color:var(--accent)">Retrieve the right context</span></div>
+      <div style="display:flex;align-items:baseline;gap:2.4cqw"><span style="font:700 3.4cqw/1 var(--mono);color:var(--muted)">3</span><span style="font:600 3.6cqw/1.2 var(--sans)">Verify the output</span></div>
+    </div></div><div class="cap"><div class="body"><span class="n">19</span><h3>Enumerated steps</h3>
+      <p class="use"><b>Use:</b> a 3&ndash;5 item list revealed one-by-one to narration.</p></div><button class="copy">Copy</button></div></div>
+
+    <div class="scene"><div class="device d16" style="background:#E9E4D6"><div class="pad" style="align-items:stretch;justify-content:center;gap:2.4cqw;padding:7cqw 12cqw">
+      <div class="bubble" style="align-self:flex-start;background:#fff;border:1px solid var(--line)">Build an Airbnb for cars</div>
+      <div class="bubble" style="align-self:flex-end;background:var(--accent);color:#F4F1E8">On it &mdash; breaking that down&hellip;</div>
+    </div></div><div class="cap"><div class="body"><span class="n">20</span><h3>Chat / UI mockup</h3>
+      <p class="use"><b>Use:</b> a real product surface or conversation, premium-built.</p></div><button class="copy">Copy</button></div></div>
+
+  </div>
+</section>
+
+<!-- ===================== MOBILE ===================== -->
+<section class="panel" id="mobile">
+  <div class="grid gm">
+    <div class="scene"><div class="device d9"><div class="th fill"><span class="tag">Talking head</span><div class="face"></div></div></div>
+      <div class="cap"><div class="body"><span class="n">01</span><h3>Full-screen talking head</h3><p class="use"><b>Use:</b> vertical hook, direct address.</p></div><button class="copy">Copy</button></div></div>
+
+    <div class="scene"><div class="device d9" style="background:var(--matte)"><div class="th" style="position:absolute;inset:5% 5%;border-radius:16px"><span class="tag">Talking head</span><div class="face"></div></div></div>
+      <div class="cap"><div class="body"><span class="n">02</span><h3>Padded · rounded</h3><p class="use"><b>Use:</b> calmer, premium register.</p></div><button class="copy">Copy</button></div></div>
+
+    <div class="scene"><div class="device d9"><div class="th" style="position:absolute;inset:0 0 38% 0"><span class="tag">Talking head</span><div class="face"></div></div>
+      <div class="txt" style="position:absolute;inset:62% 0 0 0;padding:7%"><span class="lbl">Point 01</span><div class="h">Agents need a <span class="acc">harness</span></div><div class="l"></div></div>
+    </div><div class="cap"><div class="body"><span class="n">03</span><h3>Head top · content bottom</h3><p class="use"><b>Use:</b> the vertical L/R split.</p></div><button class="copy">Copy</button></div></div>
+
+    <div class="scene"><div class="device d9"><div class="th fill"><span class="tag">Talking head</span><div class="face"></div></div>
+      <div style="position:absolute;left:6%;right:6%;bottom:14%;background:rgba(20,18,14,.8);border-radius:14px;padding:6%;color:#F4F1E8"><div style="font:700 5.5cqw/1.15 var(--sans)">The <span style="color:#7FD0A4">whole</span> playbook.</div></div>
+    </div><div class="cap"><div class="body"><span class="n">04</span><h3>Full head + caption</h3><p class="use"><b>Use:</b> kinetic caption over face.</p></div><button class="copy">Copy</button></div></div>
+
+    <div class="scene"><div class="device d9" style="background:#16140F"><div class="pad"><div class="hero" style="font-size:30cqw;color:#7FD0A4">92%</div><div class="lbl" style="color:rgba(255,255,255,.5)">not the model</div></div></div>
+      <div class="cap"><div class="body"><span class="n">05</span><h3>Number punch · dark</h3><p class="use"><b>Use:</b> one figure, vertical.</p></div><button class="copy">Copy</button></div></div>
+
+    <div class="scene"><div class="device d9"><div class="txt fill" style="padding:9% 8%;justify-content:flex-start"><div class="h" style="font-size:7cqw">The model isn't the product.</div><div class="l" style="width:60%"></div></div>
+      <div class="th" style="position:absolute;left:6%;bottom:5%;width:46%;height:22%;border-radius:12px"><span class="tag">Head</span><div class="face"></div></div>
+    </div><div class="cap"><div class="body"><span class="n">06</span><h3>Talking head bottom-left</h3><p class="use"><b>Use:</b> small face, content above.</p></div><button class="copy">Copy</button></div></div>
+
+    <div class="scene"><div class="device d9" style="background:var(--accent)"><div class="pad" style="align-items:flex-start;text-align:left;color:#F4F1E8"><div class="hero" style="font-size:28cqw;color:rgba(255,255,255,.4)">01</div><div class="hero" style="font-size:9cqw;color:#fff">Download one app</div></div></div>
+      <div class="cap"><div class="body"><span class="n">07</span><h3>Section title card</h3><p class="use"><b>Use:</b> numbered step divider.</p></div><button class="copy">Copy</button></div></div>
+
+    <div class="scene"><div class="device d9"><div class="broll fill"><span class="tag">B-roll</span></div>
+      <div style="position:absolute;left:7%;right:7%;bottom:12%;background:rgba(20,18,14,.8);border-radius:12px;padding:6%;color:#F4F1E8;font:700 6cqw/1.1 var(--sans)">Built in <span style="color:#7FD0A4">a weekend</span>.</div>
+    </div><div class="cap"><div class="body"><span class="n">08</span><h3>Full b-roll + caption</h3><p class="use"><b>Use:</b> footage + text, no face.</p></div><button class="copy">Copy</button></div></div>
+  </div>
+</section>
+
+<div id="toast" role="status"></div>
+<script>
+  document.querySelectorAll('.tabs button').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('.tabs button').forEach(function(x){x.classList.remove('on');});
+      document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('on');});
+      b.classList.add('on');document.getElementById(b.getAttribute('data-tab')).classList.add('on');
+    });
+  });
+  function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('on');
+    clearTimeout(t._h);t._h=setTimeout(function(){t.classList.remove('on');},1600);}
+  function copyText(out){
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(out).then(function(){toast('Structure copied');},function(){toast('Copy failed');});
+    }else{var ta=document.createElement('textarea');ta.value=out;document.body.appendChild(ta);ta.select();
+      try{document.execCommand('copy');toast('Structure copied');}catch(e){toast('Copy failed');}document.body.removeChild(ta);}
+  }
+  document.querySelectorAll('.copy').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      var dev=btn.closest('.scene').querySelector('.device').cloneNode(true);
+      dev.querySelectorAll('.face,.tag').forEach(function(e){e.remove();});
+      var html=dev.outerHTML.replace(/></g,'>\n<');
+      copyText('<!-- scene layout · static skeleton; add motion at build -->\n'+html);
+    });
+  });
+</script>
 </body>
 </html>
