@@ -27,6 +27,8 @@ composition, or content that could break the frame).
 - Motion:     <the one meaningful move + primitive — added at Make, described here>
 - Aspect:     16/9        (optional per scene: 16/9 · 9/16 · 1/1 · 4/5 · 4/3)
 
+- Snapshot:   reuse (template <name> as-is) · OR scene-shots/S1.png (diverges)
+
 ​```html
 <div class="stagepad">
   <div class="card stack" style="align-items:flex-start;text-align:left">
@@ -37,26 +39,19 @@ composition, or content that could break the frame).
 </div>
 ​```
 
-Score: 1:2 2:2 3:2 4:1 5:2 6:2
-Fix 4: hero amount competes with the item name; push ₦18,500 to its own line
-
 ## S2 · <name> (<start>–<end>s)
 ...
 ```
 
 ## The HTML block (one per scene)
 
-Self-contained static markup for a `<frame>` at the scene's resolution
-(16/9 → 1280×720, 9/16 → 720×1280, etc.). The generator wraps it in an
-isolated iframe with the palette tokens + a small helper stylesheet already
-injected, so author only the scene's elements. The reviewer sees the real
-frame; **the builder copies it verbatim** (the "Copy HTML" button) into the HF
-composition and animates it — so keep it clean, real, and on-brand.
+Self-contained static markup for the frame at the scene's resolution
+(16/9 → 1280×720, 9/16 → 720×1280, etc.), composed against the `Palette:`
+tokens + the helper classes below. It is build-ready: at Make the builder
+lifts this exact markup into the HF composition and adds the motion.
 
-**Tokens available** (CSS variables, from `Palette:`): `--bg` · `--ink` ·
-`--accent` · `--accent-soft` · `--muted`.
-
-**Helper classes** (use them or roll your own):
+**Tokens** (CSS variables, from `Palette:`): `--bg` · `--ink` · `--accent` ·
+`--accent-soft` · `--muted`. **Helper classes** (use them or roll your own):
 `.stagepad` (full-frame centered padding) · `.stack` (vertical, gap) ·
 `.t-hero` (serif display) · `.t-sub` · `.t-label` (tracked small-caps) ·
 `.chip` (accent pill) · `.card` (white elevated panel) · `.accent` (accent text).
@@ -65,11 +60,18 @@ Rules: real brand content (real ₦, `brand.md` names), no lorem; static only
 (no `<script>`, no animation — that's Make); derive the composition from the
 scene's `Derives:` source, don't invent UI cold.
 
-## Score line
+## Review by snapshot (no score line)
 
-`Score: <dim>:<0|1|2> …` for the six scene-design dimensions in order:
-1 focal idea · 2 motion meaning · 3 color discipline · 4 type hierarchy ·
-5 composition & breath · 6 timing & energy fit. The generator computes
-total + verdict (premium = no zeros AND ≥ 10/12). Add `Fix <n>: <change>`
-lines for any dim < 2 — they render under the scorecard and the builder fixes
-them at Make.
+There is **no self-score** in this layer — scoring a scene against a rubric is
+done post-build by the independent scene-critic (§Gate philosophy: verdicts
+are never the author's own). The design gate is the human approving the
+**rendered frame**:
+
+- **Snapshot on change only.** A scene that uses a library template as-is
+  reuses the saved template snapshot (`references/layout-snapshots/`) — mark
+  `Snapshot: reuse (template <name>)` and don't re-render it. A scene that
+  diverges (new composition, or content that could break the frame) gets a
+  fresh `works/<slug>/scene-shots/S<n>.png`; `Read` it to confirm the frame
+  matches intent.
+- Submit the snapshot set (fresh PNGs + the reused template snapshots) as the
+  durable Design gate. The reviewer judges the images, not this markup.

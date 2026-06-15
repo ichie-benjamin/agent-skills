@@ -90,7 +90,7 @@ memories/<topic>.md                           updated if new insight
 
 ## Flow
 
-Seven steps. Human approvals at Plan and each Make gate. Direction is internal.
+Eight steps. Human approvals at Plan, the Design gate, and each Make gate. Direction is internal.
 
 1. **Intake** — Load `memories/brand.md` (run §Brand setup first if it's missing) + asset libraries + REFERENCES + voice-options (each FLAGs per pre-flight if absent). Run pre-flight (below). Pick type. Ask for missing brief fields — and any §Brand setup gaps — in one consolidated message; never infer. When the brief is complete: `mkdir works/<slug>/`, write `brief.md`, initialise `TASK.md` with phase skeleton. The project exists from this moment so any session cut can resume.
 2. **Direction (INTERNAL — no human gate)** — Write `works/<slug>/direction.md` (creative commitment: signature device · look · sound · references). Validate against Validator A via a **fresh-context validator subagent** (§Gate philosophy — never self-grade), rewrite until it passes. Then proceed DIRECTLY to Plan in the same spawn — do NOT submit a gate, do NOT pause for human review. Direction is your creative scratch; the human reviews it inside Plan via the 4-line creative-bet header.
