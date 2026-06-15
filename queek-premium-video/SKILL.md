@@ -48,6 +48,8 @@ Inputs: a composition dir + the reference(s) the scenes were built from. Optiona
 | `references/reference-template.md` | this skill | Distilling an approved film into a reusable reference |
 | `references/brand-template.md` | this skill | §Brand setup — writing `memories/brand.md` for a project that doesn't have one |
 | `references/scene-critic-rubric.md` | this skill | Per-scene quality gate in Make §2 Video — critic rubric + subagent prompt |
+| `references/film-critic-rubric.md` | this skill | Whole-film quality gate at Review (step 7) — runs once on the master |
+| `bin/sync-check.py` | this skill | Measuring A/V sync on the render (Review step 7 — tool, not agent) |
 | `references/scenes-design-template.md` | this skill | Writing `scenes-design.md` at the Scene design stage |
 | `bin/plan-to-html.py` | this skill | Rendering `plan.md` as the interactive review page at Plan submit (re-run after every plan edit) |
 | `bin/scenes-to-html.py` | this skill | Rendering `scenes-design.md` as the `SCENES.html` design-gate page (re-run after every edit) |
@@ -177,7 +179,8 @@ The validator exists because films review badly when a structural piece is missi
 ### Gate philosophy (applies to EVERY gate in this skill)
 
 1. **A gate fights weak and poor work — it never caps creativity.** Creativity is limitless: a gate may not reject a scene for being unconventional, bold, or unlike a reference. It rejects only what is *broken, lazy, off-brand, or below the premium floor* (un-renderable motion, missing entrance, flat web-scale type, invented UI, fabricated facts, banned filler). Floor, not ceiling. If a check would block a strong-but-unusual choice, the check is wrong — fix the check, not the scene.
-2. **Every verdict comes from an independent check — never the author's self-attestation.** The agent that wrote the artifact may not be the one that passes it. Independence is either (a) **objective tool output** (lint · inspect · validate · animation-map — facts, not opinion), or (b) a **fresh-context validator subagent** (`Agent`, `subagent_type: general-purpose`) that sees only the artifact + the checklist, never the author's reasoning or its plea to be lenient. Self-grading is banned at every gate (the builder is primed to declare "done" — see the vo-grade lesson). The author rewrites until the *independent* verdict passes.
+2. **Every verdict comes from an independent check — never the author's self-attestation.** The agent that wrote the artifact may not be the one that passes it. Independence is either (a) **objective tool output** (lint · inspect · validate · animation-map · sync-check — facts, not opinion), or (b) a **fresh-context validator subagent** (`Agent`, `subagent_type: general-purpose`) that sees only the artifact + the checklist, never the author's reasoning or its plea to be lenient. Self-grading is banned at every gate (the builder is primed to declare "done" — see the vo-grade lesson). The author rewrites until the *independent* verdict passes.
+3. **Spend tokens only where they change the verdict (lean, not cheap).** Quality is never traded for tokens; ceremony is. A gate must produce signal no cheaper gate already produced — if a check only re-confirms a fact a tool or an earlier gate established, cut it. Concretely: **tool before agent** (a sync drift, a lint error, a duration mismatch is measured, never eyeballed by a paid agent); **gate on change** (re-judge a scene only if it changed since its last verdict; read the prior verdict, don't re-derive it); **escalate, don't blanket** (one cheap pass first — stills, single check — and spend the expensive pass, a clip / a multi-agent panel, only on the borderline cases, never the confident ones); **climb the cost ladder** (stills → denser frames → full render-watch; advance a rung only when the cheaper one is inconclusive). The most expensive gate (the whole-film critic) runs **once on the finished master**, never iteratively.
 
 ### A · Direction
 
@@ -349,7 +352,7 @@ Proceed? [Y/N]
 | 6 | Plan was followed | Shipped matches Plan within documented adaptations |
 | 7 | Research/memory diff filed | Update applied, OR postmortem says "no new insight" with reason |
 | 8 | Read-back verified | Items 1, 2, 3, 7 re-read after write |
-| 9 | Three-axis review green | Technical · brand · story all pass |
+| 9 | Film critic PASS + three-axis green | `references/film-critic-rubric.md` verdict PASS on the master · `sync-check` PASS · Technical · brand · story all pass |
 | 10 | `TASK.md` in closed state | Only `[x]` or `[-]` items remain |
 | 11 | First-of-type reference obligation (only when pre-flight #5 = 0) | New entry seeded under this type in `research/REFERENCES.md` AND `research/references/ref-<brand>-<slug>.md` written from `references/reference-template.md`. |
 
@@ -683,9 +686,17 @@ Wire VO + FX as separate audio tracks on both compositions. No mastering at this
 
 Render via `/hyperframes` per the render targets in the Plan. HF owns codec, bitrate, and output locations. By convention renders land inside each composition (`works/<slug>/composition/renders/` and `works/<slug>/composition-mobile/renders/`) — where-to-look, not a path the skill pins. Skip mobile render for Brand sting and Reel (mobile IS the master).
 
-### 5 · Three-axis review
+### 5 · Review — film critic + three axes
 
-**Technical** — Lint, validate, inspect all clean · animation-map: no unintended `paced-fast` / `paced-slow` / `collision` / `offscreen` · dimensions match Plan · sync ≤ 50ms (captions within ±100ms) · no drops or crackle.
+The scene gates proved each scene is premium in isolation. This step judges what only exists across the **whole film**, on the rendered masters, in two passes — cheap-tool facts first, then one fresh-agent watch.
+
+**Sync (tool — run first, near-zero tokens):** `python3 "$SKILL_DIR/bin/sync-check.py" --render <master.mp4> --timeline works/<slug>/deliverables/<slug>-audio-timeline.json` (add `--visual-events <json>` when scene visual-lock times are available). It measures A/V container desync, render-vs-timeline duration, timeline self-consistency, and SFX-leads-visual — the objective half of "sync ≤ 50ms," measured not eyeballed. FAIL → fix before spending the film critic.
+
+**Film critic (HARD — runs ONCE on the finished master, fresh agent):** dispatch a fresh-context critic (`Agent`, `subagent_type: general-purpose`) per [references/film-critic-rubric.md](references/film-critic-rubric.md). Inputs are **sampled, not the raw video** — a ~2 fps frame strip across the film (one `ffmpeg -vf fps=2` call) + the rendered audio (or its transcript) + the Plan's arc. It scores the emergent premium the scene-critic can't see: hook-holds-muted-3s, arc-builds, no-drag, scene-flow, sync-feels-tight, consistency, close-lands, top-studio gestalt. Floor not ceiling; a FAIL names the owning phase. This gate does not loop — a FAIL routes back (story → Plan, motion → the scene, audio → Audio) and the film re-enters Review once fixed.
+
+The three axes below are the checklist the film critic and the human apply; the critic returns the verdict, the human is the final taste backstop on a film already cleared.
+
+**Technical** — Lint, validate, inspect all clean · animation-map: no unintended `paced-fast` / `paced-slow` / `collision` / `offscreen` · dimensions match Plan · `sync-check` PASS (captions within ±100ms) · no drops or crackle.
 
 **Brand** — First frame holds muted (would a viewer scroll past?) · color discipline per scene · naming per `memories/brand.md` everywhere ("Queek AI" / "AI Agent" in the creative repo) · no banned filler · approved copy verbatim · CTA legible at thumbnail muted.
 
@@ -693,7 +704,7 @@ Render via `/hyperframes` per the render targets in the Plan. HF owns codec, bit
 
 **Reference diff** — Compare against cited refs. Honour, don't copy. Flag any place where a reference's pattern was attempted but missed.
 
-All green → Close. Any fail → route back to the phase that owns the gap. Don't patch a story-fail at render time.
+Film critic PASS + all axes green → Close. Any fail → route back to the phase that owns the gap. Don't patch a story-fail at render time.
 
 ---
 

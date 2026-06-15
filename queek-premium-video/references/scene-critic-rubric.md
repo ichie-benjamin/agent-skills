@@ -48,6 +48,17 @@ ONE command and re-snapshot the whole set together.
 alone cannot prove things actually animated. Judge motion from how frames
 change across the sequence; judge static qualities from the settle frame.
 
+**Cost-disciplined playback escalation (stills → clip, only when borderline).**
+Five stills are the default and settle most scenes cheaply. They cannot,
+however, prove *motion quality* — jank, wrong easing, stutter only exist in
+playback. So escalate ONLY when the still verdict is inconclusive on a motion
+item: anchor = MID, or a motion item (4, 11, 14) the critic could not confirm
+from stills. Then — for that scene only — render a short clip / denser strip
+(e.g. `fps=8` across the scene window) and re-judge just the open item. A
+confident PASS or FAIL on stills never escalates (spending clip tokens there
+changes no verdict). The whole-film motion read happens once at the film
+critic (Review step 7), so per-scene clip rendering stays the exception.
+
 ## Calibration anchors
 
 - **GOLD pole:** HyperFrames launch thesis frame
