@@ -2,11 +2,15 @@
 
 Written at **Flow step 4 (Scene design)**, AFTER the Plan gate, BEFORE Make.
 Each scene's layout is authored as **real static HTML** — the literal frame —
-so `SCENES.html` previews exactly what the build starts from, and Make lifts
-the markup and adds motion. The HTML is the *static layout* (HF's "Layout
-Before Animation" step): no GSAP, no HF wiring, no real data — just the
-composed frame. Read the plan §6 block + `memories/brand.md` + the scene
-library first; derive from an archetype, never invent cold.
+which is then **rendered to a snapshot** that the AI and reviewer judge (never
+read the markup and imagine it), and which Make lifts and adds motion to. The
+HTML is the *static layout* (HF's "Layout Before Animation" step): no GSAP, no
+HF wiring, no real data — just the composed frame. Read the plan §6 block +
+`memories/brand.md` + the scene library first; derive from an archetype, never
+invent cold. **Snapshot on change only** — a scene that uses a library template
+as-is reuses the saved template snapshot (`references/layout-snapshots/`);
+render a fresh `scene-shots/S<n>.png` only when the scene diverges (new
+composition, or content that could break the frame).
 
 ```markdown
 # Scene design — <film title>

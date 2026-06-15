@@ -52,8 +52,9 @@ Inputs: a composition dir + the reference(s) the scenes were built from. Optiona
 | `references/film-critic-rubric.md` | this skill | Whole-film quality gate at Review (step 7) — runs once on the master |
 | `bin/sync-check.py` | this skill | Measuring A/V sync on the render (Review step 7 — tool, not agent) |
 | `references/scenes-design-template.md` | this skill | Writing `scenes-design.md` at the Scene design stage |
+| `references/archetypes.md` | this skill | The scene-layout catalog — read at Scene design recommend |
+| `references/scene-layouts.html` + `references/layout-snapshots/` | this skill | Visual layout library + its pre-rendered snapshots (the AI's saved visual; reused, never re-rendered) |
 | `bin/plan-to-html.py` | this skill | Rendering `plan.md` as the interactive review page at Plan submit (re-run after every plan edit) |
-| `bin/scenes-to-html.py` | this skill | Rendering `scenes-design.md` as the `SCENES.html` design-gate page (re-run after every edit) |
 | `references/asset-sourcing.md` | this skill | Sourcing any asset |
 | `research/REFERENCES.md` | working project | Pre-flight reference scan; picking refs to cite |
 | `research/patterns/pattern-failures.md` | working project | Pre-flight failures scan |
@@ -67,7 +68,8 @@ Each project lives at `works/<slug>/`:
 
 ```
 brief.md · direction.md · plan.md · scenes-design.md · postmortem.md · TASK.md
-plan.html · SCENES.html        review surfaces (regenerated from their .md)
+plan.html                      Plan review surface (regenerated from plan.md)
+scene-shots/                   per-scene design snapshots (only divergent scenes; template-as-is reuse saved snapshots)
 assets/                       raw originals
 deliverables/                 audio: stems + master + audio-timeline.json + README
 composition/                  desktop HF project (renders/ lives inside per HF convention)
@@ -99,7 +101,7 @@ Seven steps. Human approvals at Plan and each Make gate. Direction is internal.
    **Signature device:** <name>
    **Arc:** <beat → beat → beat>
    ``` Source assets per `references/asset-sourcing.md`. Validate against Validator B via a **fresh-context validator subagent** (§Gate philosophy — never self-grade); rewrite until it passes. Then judge the *writing* (VO §7 + on-screen text + captions §8) with a **fresh-context script judge** per [references/script-judge-rubric.md](references/script-judge-rubric.md) — a near-free text-only gate that catches a weak hook, padded lines, jargon, or a fabricated claim *before* a single scene or VO is paid for; rewrite until it passes. Then render the review page — `python3 "$SKILL_DIR/bin/plan-to-html.py" works/<slug>/plan.md` → `works/<slug>/plan.html` — and submit BOTH (the md is the contract; the html is the review surface: creative-bet hero, clickable scene timeline, accordion sections, per-section comments with select-to-quote, APPROVE/REVISE verdict, "Copy review" markdown export the human pastes back). Media paths cited in the plan render live: audio files (SFX, beds) as inline players, images and clips as click-to-preview chips — so every **G**-status asset is auditioned by the reviewer at the Plan gate, while D/R assets show as pending chips until Make sources them. On any plan edit, regenerate the html in the same commit — it must always render the md that's actually submitted.
-4. **Scene design (SECOND HUMAN GATE)** — Build out the approved plan's look as **real static HTML** before motion. Per approved scene, run the `scene-design` skill (`recommend`): pick an archetype (never invent cold), author the scene's static layout HTML on brand tokens, name the one meaningful motion, self-score on its 6-dim rubric. Write `works/<slug>/scenes-design.md` per `references/scenes-design-template.md`, then render `python3 "$SKILL_DIR/bin/scenes-to-html.py" works/<slug>/scenes-design.md` → `works/<slug>/SCENES.html` and submit it as a durable gate. The reviewer sees each scene's real rendered frame; Make lifts the same HTML and adds motion — so approval here is "build from this." See §Scene design.
+4. **Scene design (SECOND HUMAN GATE)** — Build out the approved plan's look as **real static HTML** before motion. Per approved scene: recommend an archetype from the bundled catalog + saved layout snapshots (never invent cold), author the static layout HTML on brand tokens into `works/<slug>/scenes-design.md`, then **snapshot only the scenes that diverge** from their template (template-as-is scenes reuse the saved snapshot) and `Read` the PNGs to verify. Submit the snapshot set as a durable gate — the reviewer judges the rendered *images*, not the markup; Make lifts the same HTML and adds motion. See §Scene design.
 5. **Make** — Audio · Video · Mobile, with three gates (below). Video builds against the approved `scenes-design.md` (the look) + `plan.md` (the contract).
 6. **Render** — Wire stems, render both masters.
 7. **Review** — Three axes: technical · brand · story · reference diff. Fail routes to the phase that owns the gap.
@@ -385,23 +387,27 @@ Missing any of the four fields invalidates the waiver.
 
 ## Scene design (Flow step 4 — the Design gate)
 
-Sits between an approved Plan and Make. The Plan locked *what each beat is and when* (timing, VO, scene intent, assets); this stage locks *how each beat looks* by building the **static layout HTML** for every scene — the literal frame, minus motion. This is HF's "Layout Before Animation" step pulled forward into a review gate: the reviewer approves the real frame, and Make continues from that exact markup (lift via "Copy HTML") by adding motion + wiring audio. It pairs with the post-build scene-critic at two non-overlapping altitudes: **Design gate = composition + hierarchy (pre-motion, the real static frame); scene-critic = motion + premium feel (post-build, a still can't prove it).**
+Sits between an approved Plan and Make. The Plan locked *what each beat is and when* (timing, VO, scene intent, assets); this stage locks *how each beat looks* by building the **static layout HTML** for every scene — the literal frame, minus motion (HF's "Layout Before Animation" step pulled forward into a review). It pairs with the post-build scene-critic at two non-overlapping altitudes: **Design gate = composition + hierarchy (pre-motion, the real static frame); scene-critic = motion + premium feel (post-build, a still can't prove it).**
+
+This skill homes the whole capability — catalog, layout library, the recommend step, and the gates. There is no separate skill to invoke.
+
+**The visual is the truth — review snapshots, never read the markup.** A model that reads a scene's HTML/`.md` and *imagines* the frame misreads under pressure; a rendered snapshot removes that failure mode (the same reason every other gate here works from snapshots). So the design artifact the AI and the human judge is the **rendered PNG**, not the code.
+
+**Snapshot on change, not every time (cost discipline).** The layout templates are stable — their snapshots are pre-rendered once and saved at `references/layout-snapshots/` (`desktop-layouts.png` · `mobile-layouts.png`). The AI *sees* the library by reading those saved snapshots — it never re-renders a known layout, and they persist across sessions (resume reads them). A **fresh per-scene snapshot is taken only when the scene diverges** from its template — a new composition, or real content (a long headline, a big number) that could break the frame. A scene that uses a template as-is is already represented by the saved template snapshot; re-rendering it adds no new visual information, so don't.
 
 **Process (per approved scene):**
 
-1. Invoke the `scene-design` skill in `recommend` mode with the scene's plan §6 block + its role in the energy arc + the signature device. It reads the scene library (below) + bundled archetypes and returns an archetype, layout, the one meaningful motion, type tiers, timing, and a 6-dimension self-score.
-2. Write the scene into `works/<slug>/scenes-design.md` per `references/scenes-design-template.md`: archetype · derives-from · focal · motion · the scene's **static layout HTML** (one ` ```html ` block, on brand tokens + helper classes, no script/animation) · the score line + any `Fix N:` notes for dims under 2.
-3. **Never invent the layout cold** — every scene derives from a library archetype, a real screenshot, or a prior film's scene (the `Derives:` field). This is the same anchor rule that kills the F5 "invented-UI" failure mode, applied at design time.
+1. **Recommend (inline).** Read `references/archetypes.md` (the catalog) + the saved layout snapshots; pick the archetype that fits the beat + its arc role + the signature device. Emit the layout spec (archetype · layout · the one motion · color role · type tiers · timing). Never invent the layout cold — every scene derives from a catalog archetype, a real screenshot, or a prior film's scene. This is the F5 "invented-UI" anchor rule applied at design time.
+2. **Build the static layout HTML** into `works/<slug>/scenes-design.md` per `references/scenes-design-template.md` (one ` ```html ` block per scene, brand tokens + helper classes, no script/animation). This is build-ready — Make lifts it and adds motion.
+3. **Snapshot only the divergent scenes** (per the rule above) → `works/<slug>/scene-shots/S<n>.png`; `Read` each to verify the frame matches intent. Template-as-is scenes reuse the saved template snapshot; cite which.
 
-**Render + gate:** `python3 "$SKILL_DIR/bin/scenes-to-html.py" works/<slug>/scenes-design.md` → `works/<slug>/SCENES.html`. Submit it as a durable gate (the `[!] AWAITING Design gate` line per §Gate protocol). The page renders each scene's real HTML frame in an isolated scaled iframe, with a **Copy HTML** button (the builder's starting markup), the archetype, scorecard + fixes, the reference it derives from (screenshots click to preview), and a comment thread with APPROVE/REVISE + "Copy review" export. Regenerate the html on any edit — it must always render the md submitted.
+**Gate:** submit the snapshot set (fresh per-scene PNGs + the saved template snapshots the as-is scenes reuse) as a durable gate (the `[!] AWAITING Design gate` line per §Gate protocol). The human reviews the *images*; approval = "build from these." The gate is the human approval, owned here — there is no advisory auto-score; queek's own independent gates (structural + scene-critic, post-build) judge the result.
 
-**Advisory scoring, hard gate:** `scene-design` itself only scores and recommends (it never blocks); the *human approval* is the gate, owned here. A scene scoring below premium (zeros, or < 10/12) isn't auto-blocked — it's surfaced with its fixes for the reviewer to weigh.
-
-**Depth scales by type** (per §Section requirements matrix): full layout HTML + score per scene for Launch / Industry / Feature; lighter (archetype + focal + score, HTML optional) for Customer / Reel; **skipped for Brand sting** (one scene, no composition decision to gate).
+**Depth scales by type** (per §Section requirements matrix): full layout HTML + snapshot per scene for Launch / Industry / Feature; lighter (archetype + focal, HTML optional) for Customer / Reel; **skipped for Brand sting** (one scene, no composition decision to gate).
 
 **Scene library (per-dir, grows like film references).** Two layers, mirroring the L0–L3 component model:
-- **Bundled archetypes** — `scene-design`'s own `references/archetypes.md`, the universal starter catalog. Ships with the skill; never project-specific.
-- **Project scene library** — accumulates in the working project (alongside `research/references/`), brand-specific proven layouts that subsequent films lift from. `recommend` consults both. *(Library graduation at Close — writing a newly-proven layout back into the project library — is slice 2; for now the stage consults the bundled archetypes + any film references already on disk.)*
+- **Bundled catalog + library** — `references/archetypes.md` (named layouts) + `references/scene-layouts.html` with its saved `layout-snapshots/`. The universal starter palette; ships with the skill, never a cap on concept.
+- **Project scene library** — accumulates in the working project (alongside `research/references/`), brand-specific proven layouts subsequent films lift from. *(Library graduation at Close — writing a newly-proven layout + its snapshot back into the project library — is a later slice; for now the stage consults the bundled catalog + any film references on disk.)*
 
 Make's Video phase (§2 below) builds against the approved `scenes-design.md` as the look spec, the locked audio timeline as the spine, and `plan.md` as the contract.
 
