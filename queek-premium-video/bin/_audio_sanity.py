@@ -37,6 +37,18 @@ THRESHOLDS = {
     "silence_db_stem": -50,      # for VO stems (no music)
 }
 
+# Objective master-target spec (pattern-premium-vo). NOT feel prediction —
+# these are the loudness/dynamics numbers a premium master is *told* to hit;
+# --profile master verifies the finished master actually hit them. Premium
+# FEEL remains the ear at Gate 1; this only enforces the published spec.
+MASTER_PROFILE = {
+    "lufs_lo": -14.0,            # integrated loudness band
+    "lufs_hi": -11.0,
+    "true_peak_max": 0.0,        # ceiling for a delivered master (tighter than sanity's +1.0)
+    "lra_max": 3.0,             # premium dynamic-range ceiling (tighter than sanity's 3.5)
+    "min_outro_silence": 0.10,   # ends on a clean silent stop, not a hard mid-sound cut
+}
+
 
 def run_ebur128(audio_path):
     result = subprocess.run(
@@ -95,6 +107,8 @@ def main():
     ap.add_argument("--script", help="text file of VO script (for WPM)")
     ap.add_argument("--transcript", help="hyperframes transcript.json (for WPM)")
     ap.add_argument("--json", action="store_true", help="structured JSON output")
+    ap.add_argument("--profile", choices=["sanity", "master"], default="sanity",
+                    help="sanity (default, mechanical floor) or master (objective premium loudness spec)")
     args = ap.parse_args()
 
     audio = Path(args.audio)
@@ -175,6 +189,41 @@ def main():
     else:
         checks.append(("pauses_present", "FAIL", f"0 pauses detected — single-take rushed read"))
 
+    # Master profile (objective spec compliance — only with --profile master).
+    # Verifies the finished master hit the published loudness/dynamics target;
+    # NOT a premium-feel predictor (that's the ear at Gate 1).
+    if args.profile == "master":
+        mp = MASTER_PROFILE
+        if lufs is None:
+            checks.append(("master_loudness", "SKIP", "ffmpeg could not measure"))
+        elif not (mp["lufs_lo"] <= lufs <= mp["lufs_hi"]):
+            checks.append(("master_loudness", "FAIL",
+                           f"{lufs:.1f} LUFS — outside master band [{mp['lufs_lo']}, {mp['lufs_hi']}]"))
+        else:
+            checks.append(("master_loudness", "PASS", f"{lufs:.1f} LUFS in band"))
+
+        if true_peak is None:
+            checks.append(("master_truepeak", "SKIP", "ffmpeg could not measure"))
+        elif true_peak > mp["true_peak_max"]:
+            checks.append(("master_truepeak", "FAIL",
+                           f"{true_peak:.1f} dBFS — over master ceiling {mp['true_peak_max']} dBFS"))
+        else:
+            checks.append(("master_truepeak", "PASS", f"{true_peak:.1f} dBFS"))
+
+        if lra is None:
+            checks.append(("master_dynamics", "SKIP", "ffmpeg could not measure"))
+        elif lra > mp["lra_max"]:
+            checks.append(("master_dynamics", "FAIL",
+                           f"{lra:.1f} LU — over premium LRA ceiling {mp['lra_max']} LU"))
+        else:
+            checks.append(("master_dynamics", "PASS", f"{lra:.1f} LU"))
+
+        if outro_silence >= mp["min_outro_silence"]:
+            checks.append(("master_clean_stop", "PASS", f"{outro_silence:.2f}s clean tail"))
+        else:
+            checks.append(("master_clean_stop", "FAIL",
+                           f"{outro_silence:.2f}s — no clean silent stop (hard cut mid-sound)"))
+
     # Verdict
     fails = [c for c in checks if c[1] == "FAIL"]
     if fails:
@@ -185,6 +234,7 @@ def main():
     if args.json:
         out = {
             "audio": str(audio),
+            "profile": args.profile,
             "verdict": verdict,
             "duration_s": round(duration, 2),
             "metrics": {

@@ -14,6 +14,19 @@ Only 5 hard checks. No middle-range premium prediction. Each fires FAIL only at 
 | **pace** | `WPM < 60` OR `WPM > 220` (only if `--script`/`--transcript` supplied) | Drag-speed or rushed reading |
 | **pauses_present** | `0 pauses ≥ 300ms detected` | Single-take rushed read with no breath beats |
 
+## `--profile master` (objective master-spec compliance — NOT premium prediction)
+
+Default `--profile sanity` is the mechanical floor above (wide thresholds on raw VO). `--profile master` adds four checks that verify a **finished master** hit the published premium loudness spec from `pattern-premium-vo.md` — the numbers the master is *told* to hit, now enforced by tool instead of asserted:
+
+| Check | FAIL threshold |
+|---|---|
+| `master_loudness` | LUFS outside `[-14, -11]` |
+| `master_truepeak` | true peak > `0.0 dBFS` |
+| `master_dynamics` | LRA > `3.0 LU` |
+| `master_clean_stop` | outro silence < `0.10s` (hard cut mid-sound) |
+
+This is **spec compliance, not feel prediction** — it does not repeat the v1 mistake of predicting premium from metrics. It only confirms the delivered master meets its own target; whether it *feels* premium stays the ear at Gate 1. Run it on the mastered file, not raw stems.
+
 ## What it does NOT check
 
 - **Pause count bands.** 1 pause vs 9 pauses both PASS — premium feel varies.
